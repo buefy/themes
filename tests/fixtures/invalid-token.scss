@@ -1,0 +1,3 @@
+// Intentionally invalid: the build must reject unknown tokens.
+@use "../../src/core/tokens";
+:root { @include tokens.emit(("not-a-token": 1)); }

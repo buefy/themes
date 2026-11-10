@@ -1,0 +1,9 @@
+@use "sass:map";
+@use "../../src/core/tokens";
+@use "../../src/core/scope";
+
+// Distinct marker values make each scenario assertable.
+@include scope.standalone(
+  tokens.merge(tokens.$light, ("material-tint": "L")),
+  tokens.merge(tokens.$dark, ("material-tint": "D"))
+);

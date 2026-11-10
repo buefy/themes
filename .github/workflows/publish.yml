@@ -20,6 +20,7 @@ jobs:
           cache: npm
           registry-url: https://registry.npmjs.org
       - run: npm ci
+      - run: npx playwright-core install --with-deps chromium-headless-shell
       - run: npm test
       - name: Check tag matches package version
         run: |

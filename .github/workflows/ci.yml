@@ -21,6 +21,7 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
+      - run: npx playwright-core install --with-deps chromium-headless-shell
       - run: npm test
       - name: Pack tarball
         if: matrix.node == 22

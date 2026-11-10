@@ -1,1 +1,86 @@
-// @buefy/themes core: tokens (placeholder, implemented in a later milestone)
+// Public token schema for @buefy/themes.
+//
+// Every `--buefy-*` custom property a theme may set is listed in $schema.
+// Themes supply values for these tokens only; component mappings (a later
+// milestone) read the tokens. Unknown keys fail the build, so typos and
+// accidental API growth are caught early.
+
+@use "sass:list";
+@use "sass:map";
+
+// Token name (without the --buefy- prefix) -> what it controls.
+$schema: (
+  "elevation-1": "Resting surfaces: box, card",
+  "elevation-2": "Raised surfaces: navbar, dropdown, datepicker, tooltip",
+  "elevation-3": "Transient notices: toast, snackbar, notification",
+  "elevation-4": "Overlays: modal, dialog, sidebar",
+  "motion-duration-fast": "Hover and press feedback",
+  "motion-duration-normal": "Most state changes",
+  "motion-duration-slow": "Entrances of large surfaces",
+  "motion-ease-standard": "Default curve",
+  "motion-ease-decelerate": "Elements entering",
+  "motion-ease-accelerate": "Elements leaving",
+  "focus-ring-width": "Focus ring thickness",
+  "focus-ring-offset": "Gap between element and focus ring",
+  "focus-ring-color": "Focus ring colour",
+  "material-blur": "Backdrop blur radius for frosted surfaces",
+  "material-saturate": "Backdrop saturation multiplier",
+  "material-tint": "Surface tint laid over the blurred backdrop",
+  "material-border": "Hairline edge colour for material surfaces"
+) !default;
+
+// Neutral defaults. Themes override individual keys with merge().
+$light: (
+  "elevation-1": (0 0 2px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.14)),
+  "elevation-2": (0 0 2px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.14)),
+  "elevation-3": (0 0 2px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.14)),
+  "elevation-4": (0 0 8px rgba(0, 0, 0, 0.12), 0 16px 32px rgba(0, 0, 0, 0.14)),
+  "motion-duration-fast": 120ms,
+  "motion-duration-normal": 200ms,
+  "motion-duration-slow": 300ms,
+  "motion-ease-standard": cubic-bezier(0.33, 0, 0.67, 1),
+  "motion-ease-decelerate": cubic-bezier(0.1, 0.9, 0.2, 1),
+  "motion-ease-accelerate": cubic-bezier(0.7, 0, 1, 0.5),
+  "focus-ring-width": 2px,
+  "focus-ring-offset": 2px,
+  "focus-ring-color": hsl(221, 100%, 40%),
+  "material-blur": 20px,
+  "material-saturate": 1.25,
+  "material-tint": rgba(255, 255, 255, 0.72),
+  "material-border": rgba(0, 0, 0, 0.08)
+) !default;
+
+// Dark values only differ where the light value would look wrong on dark
+// surfaces: shadows need more opacity to read, tints and edges invert.
+$dark: map.merge(
+  $light,
+  (
+    "elevation-1": (0 0 2px rgba(0, 0, 0, 0.24), 0 1px 2px rgba(0, 0, 0, 0.28)),
+    "elevation-2": (0 0 2px rgba(0, 0, 0, 0.24), 0 4px 8px rgba(0, 0, 0, 0.28)),
+    "elevation-3": (0 0 2px rgba(0, 0, 0, 0.24), 0 8px 16px rgba(0, 0, 0, 0.28)),
+    "elevation-4": (0 0 8px rgba(0, 0, 0, 0.24), 0 16px 32px rgba(0, 0, 0, 0.28)),
+    "focus-ring-color": hsl(221, 100%, 75%),
+    "material-tint": rgba(32, 32, 32, 0.72),
+    "material-border": rgba(255, 255, 255, 0.1)
+  )
+) !default;
+
+// Returns $overrides merged over $base after checking every key is in the schema.
+@function merge($base, $overrides) {
+  @each $key in map.keys($overrides) {
+    @if not map.has-key($schema, $key) {
+      @error "Unknown token \"#{$key}\". Known tokens: #{list.join(map.keys($schema), (), $separator: comma)}";
+    }
+  }
+  @return map.merge($base, $overrides);
+}
+
+// Emits one custom property per token. Fails on keys outside the schema.
+@mixin emit($tokens) {
+  @each $key, $value in $tokens {
+    @if not map.has-key($schema, $key) {
+      @error "Unknown token \"#{$key}\".";
+    }
+    --buefy-#{$key}: #{$value};
+  }
+}

@@ -1,0 +1,9 @@
+@use "../../src/core/tokens";
+@use "../../src/core/scope";
+
+@include scope.scoped("a",
+  tokens.merge(tokens.$light, ("material-tint": "A-L")),
+  tokens.merge(tokens.$dark, ("material-tint": "A-D")));
+@include scope.scoped("b",
+  tokens.merge(tokens.$light, ("material-tint": "B-L")),
+  tokens.merge(tokens.$dark, ("material-tint": "B-D")));
