@@ -53,6 +53,33 @@ Tests verify that the root entry renders **exactly** like the matching standalon
 
 The Sass route imports Bulma's mixins, so it needs `bulma` installed (an optional peer dependency).
 
+#### Configuring the accent
+
+`fluent` generates its blue accent with Bulma's own palette mixins at build time, so the accent is a Sass setting rather than a CSS variable (changing only a lightness in CSS would leave Bulma's derived shades and text colours stale).
+
+```scss
+// your own brand colour; the dark-mode accent is derived automatically
+@use "pkg:@buefy/themes/fluent" with ($accent: #7957d5);
+
+// ...or choose the dark-mode accent yourself
+@use "pkg:@buefy/themes/fluent" with ($accent: #7957d5, $accent-dark: #b39cf0);
+
+// ...or keep your own Bulma palette and take only the rest of the theme
+@use "pkg:@buefy/themes/fluent" with ($accent: none);
+
+// the root entry configures only its fluent scope
+@use "pkg:@buefy/themes" with ($fluent-accent: #7957d5, $fluent-accent-dark: #b39cf0);
+```
+
+| Variable | Meaning |
+|---|---|
+| `$accent` | A colour, or `none` to skip palette generation. Default: Fluent blue (`#0f6cbd`). It drives `primary` and `link`. |
+| `$accent-dark` | A colour for dark mode. Default: Fluent's dark blue (`#479ef5`), or, when only `$accent` is set, `$accent` lightened until it reaches 4.5:1 against the dark page. |
+
+When you set `$accent`, the text on filled buttons is chosen as white or near-black, whichever has more contrast. This is tested for a spread of nine brand colours in both light and dark. One thing is **not** checked for you: in light mode, outlined and text buttons draw with the accent itself on a white page, so a very light accent (a yellow, say) can fall below 4.5:1 there. Pick a darker `$accent` in that case. Passing something that is not a colour fails the build with a message saying so.
+
+`elevated` and `glass` have no accent setting; they keep Bulma's colours.
+
 ### For tools and AI agents
 
 `@buefy/themes/manifest` is a JSON description generated at build time: theme names and one-line summaries, exact import statements, the activation attribute, every public `--buefy-*` token with its description (read from the Sass source), opt-in classes, accessibility guarantees and file sizes.
@@ -146,7 +173,7 @@ The build targets Chrome and Edge 100, Firefox 100 and Safari 15.4 or newer, and
 
 These are known and intentional for 0.1.0:
 
-- **No Sass configuration.** `@use "pkg:@buefy/themes/fluent" with ($accent: …)` is not supported yet; the Sass route compiles to the same output as the CSS route. To use your own accent, override the generated Bulma palette variables yourself.
+- **Only the `fluent` accent is configurable from Sass.** Everything else is customised through the CSS tokens above. There is no Sass setting for fonts, radii or the glass tint yet.
 - **One standalone theme per page.** Do not import two standalone entries. Use the root entry to switch.
 - **The theme attribute belongs on `<html>`.** Themes are page-wide, not per subtree. Light/dark does work per subtree.
 - **Custom colours** (Bulma's `$custom-colors`) are not themed by `fluent`'s generated palette, and `glass` may frost a custom-coloured toast that has not been checked for contrast.

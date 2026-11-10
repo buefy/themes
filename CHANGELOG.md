@@ -6,6 +6,18 @@ follow [Semantic Versioning](https://semver.org/). Until 1.0, a change to the
 public token schema (`--buefy-*`) may happen in a minor release; it will be listed
 here.
 
+## [Unreleased]
+
+### Added
+
+- **Sass configuration of the `fluent` accent:** `@use "pkg:@buefy/themes/fluent" with ($accent: …, $accent-dark: …)`, `$accent: none` to keep your own Bulma palette, and `$fluent-accent` / `$fluent-accent-dark` on the root entry. A single `$accent` derives a dark-mode accent that is readable on the dark page, and filled-button text is chosen for contrast. Default output is unchanged.
+- README: token reference, how to override a token (`html:root:root:root:root:root`), screenshots.
+- Repository files: `.editorconfig`, issue and pull request templates, `CONTRIBUTING.md`, funding, CodeQL.
+
+### Changed
+
+- Glass contrast tests now include the toast's element opacity (tests only; no CSS change).
+
 ## [0.1.0] - Unreleased
 
 First release.

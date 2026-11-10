@@ -6,10 +6,16 @@
 // be on <html>. It composes with Bulma's own light/dark switch:
 //
 //   <html data-buefy-theme="fluent" data-theme="dark">
+//
+// Configurable from Sass (same meaning as in the fluent entry):
+//   @use "pkg:@buefy/themes" with ($fluent-accent: #7957d5, $fluent-accent-dark: #b39cf0);
+$fluent-accent: null !default;
+$fluent-accent-dark: null !default;
+
 @use "../themes/elevated";
 @use "../themes/fluent";
 @use "../themes/glass";
 
 @include elevated.output("elevated");
-@include fluent.output("fluent");
+@include fluent.output("fluent", $accent: $fluent-accent, $accent-dark: $fluent-accent-dark);
 @include glass.output("glass");

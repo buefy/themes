@@ -10,17 +10,21 @@
 //   - hairline strokes folded into every elevation level
 //   - decelerate-in motion, plus an acrylic-style frosted dropdown flyout
 
+@use "sass:color";
+@use "sass:list";
 @use "sass:map";
+@use "sass:math";
+@use "sass:meta";
 @use "bulma/sass/utilities/css-variables" as cv;
 @use "../../core/mapping";
 @use "../../core/material";
 @use "../../core/scope";
 @use "../../core/tokens";
 
-// Accent. #0f6cbd, expressed as HSL so Bulma can derive its shade ladder.
-$accent: hsl(209, 85%, 40%) !default;
-// Dark mode accent: #479ef5, Fluent's dark-mode brand foreground.
-$accent-dark: hsl(209, 90%, 61%) !default;
+// Default accent. #0f6cbd, expressed as HSL so Bulma can derive its shade ladder.
+$default-accent: hsl(209, 85%, 40%);
+// Default dark-mode accent: #479ef5, Fluent's dark-mode brand foreground.
+$default-accent-dark: hsl(209, 90%, 61%);
 
 // CSS selectors that get the frosted-glass flyout material.
 $flyouts: (".dropdown-content");
@@ -76,8 +80,94 @@ $dark: map.merge(
 $_check-light: tokens.merge((), $light);
 $_check-dark: tokens.merge((), $dark);
 
+// WCAG 2 relative luminance. Written out here rather than reusing Bulma's
+// bulmaColorLuminance(), which is not the WCAG formula: with it, #0f6cbd chose
+// dark button text at 3.7:1 where white gives 5.6:1.
+@function channel-luminance($value) {
+  $s: math.div($value, 255);
+  @if $s <= 0.03928 {
+    @return math.div($s, 12.92);
+  }
+  @return math.pow(math.div($s + 0.055, 1.055), 2.4);
+}
+
+@function relative-luminance($color) {
+  @return 0.2126 * channel-luminance(color.channel($color, "red", $space: rgb)) +
+    0.7152 * channel-luminance(color.channel($color, "green", $space: rgb)) +
+    0.0722 * channel-luminance(color.channel($color, "blue", $space: rgb));
+}
+
+// WCAG contrast ratio between two opaque colours.
+@function contrast-ratio($a, $b) {
+  $l1: relative-luminance($a);
+  $l2: relative-luminance($b);
+  @if $l1 < $l2 {
+    $swap: $l1;
+    $l1: $l2;
+    $l2: $swap;
+  }
+  @return math.div($l1 + 0.05, $l2 + 0.05);
+}
+
+// Lightens $color in small steps until it reaches $min contrast against $bg
+// (or white). Used to derive a dark-mode accent from a single brand colour.
+// The default target is slightly above 4.5 because browsers round colours to
+// whole 0-255 channels, which can cost about 0.01.
+@function lighten-until-readable($color, $bg, $min: 4.6) {
+  @for $i from 1 through 50 {
+    @if contrast-ratio($color, $bg) >= $min {
+      @return $color;
+    }
+    $color: color.adjust($color, $lightness: 2%, $space: hsl);
+  }
+  @return $color;
+}
+
+$dark-page: hsl(0, 0%, 9%);
+
+// Lightness for text on a filled button of colour $base: white or near-black,
+// whichever has more contrast. Bulma picks the text colour itself, but for a
+// mid-tone colour it can pick white at 3.8:1 where dark text would give 5:1
+// (seen with a lightened purple in dark mode), so for a user-supplied accent we
+// choose explicitly. Near-black is 3% rather than 0% so it is not harsh.
+@function best-invert-l($base) {
+  $dark-text: color.change($base, $lightness: 3%, $space: hsl);
+  @if contrast-ratio(white, $base) >= contrast-ratio($dark-text, $base) {
+    @return 100%;
+  }
+  @return 3%;
+}
+
+// Resolves the accent configuration to (light, dark) colours, or null to keep
+// the app's own palette. $accent: null uses the defaults; "none" opts out.
+@function resolve-accent($accent, $accent-dark) {
+  @if $accent == none {
+    @return null;
+  }
+  @if $accent != null and meta.type-of($accent) != "color" {
+    @error "fluent: $accent must be a colour, null (the default) or none, not #{meta.inspect($accent)}.";
+  }
+  @if $accent-dark != null and meta.type-of($accent-dark) != "color" {
+    @error "fluent: $accent-dark must be a colour or null, not #{meta.inspect($accent-dark)}.";
+  }
+  $light: $accent;
+  $dark: $accent-dark;
+  @if $light == null {
+    $light: $default-accent;
+    @if $dark == null {
+      $dark: $default-accent-dark;
+    }
+  } @else if $dark == null {
+    // One brand colour given: derive a dark-mode accent that is readable on the
+    // dark page, since outlined and text buttons draw with the accent itself.
+    $dark: lighten-until-readable($light, $dark-page);
+  }
+  @return ($light, $dark);
+}
+
 // Declarations emitted into every light/dark block (see scope.themed).
-@mixin host-extras($mode) {
+// $accent and $accent-dark are the user's configuration (null = defaults).
+@mixin host-extras($mode, $accent: null, $accent-dark: null) {
   // Neutral greys instead of Bulma's blue-grey.
   --bulma-scheme-s: 0%;
   --bulma-text-s: 0%;
@@ -96,17 +186,24 @@ $_check-dark: tokens.merge((), $dark);
   // regenerates the whole palette from a lighter blue, which is how Fluent
   // treats foreground brand colour in dark mode too. Bulma still derives the
   // accessible text colour for every filled shade.
-  $base: $accent;
-  $scheme-main: hsl(0, 0%, 100%);
-  $scheme-main-l: 100%;
-  @if $mode == dark {
-    $base: $accent-dark;
-    $scheme-main: hsl(0, 0%, 9%);
-    $scheme-main-l: 9%;
-  }
-  @each $name in ("primary", "link") {
-    @include cv.generate-color-palette($name, $base, $scheme-main-l);
-    @include cv.generate-on-scheme-colors($name, $base, $scheme-main);
+  $resolved: resolve-accent($accent, $accent-dark);
+  @if $resolved != null {
+    $base: list.nth($resolved, 1);
+    $scheme-main: hsl(0, 0%, 100%);
+    $scheme-main-l: 100%;
+    @if $mode == dark {
+      $base: list.nth($resolved, 2);
+      $scheme-main: $dark-page;
+      $scheme-main-l: 9%;
+    }
+    @each $name in ("primary", "link") {
+      @include cv.generate-color-palette($name, $base, $scheme-main-l);
+      @include cv.generate-on-scheme-colors($name, $base, $scheme-main);
+      @if $accent != null {
+        // A custom accent: make sure filled-button text is readable (see above).
+        --bulma-#{$name}-invert-l: #{best-invert-l($base)};
+      }
+    }
   }
 }
 
@@ -120,10 +217,11 @@ $_check-dark: tokens.merge((), $dark);
 
 // Everything this theme emits. $name null: standalone; otherwise scoped under
 // <html data-buefy-theme="$name">.
-@mixin output($name: null) {
+// $accent / $accent-dark: see resolve-accent().
+@mixin output($name: null, $accent: null, $accent-dark: null) {
   $host: scope.host($name);
   @include scope.tokens-for($name, $light, $dark) using ($mode) {
-    @include host-extras($mode);
+    @include host-extras($mode, $accent, $accent-dark);
   }
   @include mapping.for($name);
   @include components($host);

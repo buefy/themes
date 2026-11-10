@@ -129,7 +129,10 @@ const uses = {
   all: '@use "pkg:@buefy/themes";',
   elevated: '@use "pkg:@buefy/themes/elevated";',
   fluent: '@use "pkg:@buefy/themes/fluent";',
-  glass: '@use "pkg:@buefy/themes/glass";'
+  glass: '@use "pkg:@buefy/themes/glass";',
+  fluentCustom: '@use "pkg:@buefy/themes/fluent" with ($accent: #7957d5, $accent-dark: #b39cf0);',
+  fluentNone: '@use "pkg:@buefy/themes/fluent" with ($accent: none);',
+  allCustom: '@use "pkg:@buefy/themes" with ($fluent-accent: #7957d5);'
 }
 const out = {}
 for (const [name, source] of Object.entries(uses)) {
@@ -280,6 +283,14 @@ test('Sass: @use "pkg:@buefy/themes[/theme]" compiles every entry', () => {
     has('all', new RegExp(`data-buefy-theme="?${name}"?`), `scopes ${name}`)
   }
   assert.ok(!/data-buefy-theme/.test(css.fluent), 'a standalone theme must not be scoped')
+
+  // Configuration passes through the public pkg: entries from the installed tarball.
+  has('fluentCustom', /--bulma-primary-h:\s*256deg/, '$accent reaches the palette (purple hue)')
+  assert.ok(!/--bulma-primary-h:\s*209deg/.test(css.fluentCustom), 'default blue must not be emitted when configured')
+  assert.ok(!/--bulma-primary-h:/.test(css.fluentNone), '$accent: none emits no palette')
+  has('fluentNone', /--bulma-radius-large:\s*8px/, 'the rest of the theme still applies with $accent: none')
+  has('allCustom', /data-buefy-theme="?fluent"?[^{]*{[^}]*--bulma-primary-h:\s*256deg/, '$fluent-accent configures the fluent scope')
+  assert.ok(!/--bulma-primary-h:\s*209deg/.test(css.allCustom), 'default blue must not be emitted when configured')
 })
 
 test('Node resolves the exports map and blocks everything else', () => {

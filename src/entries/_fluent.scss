@@ -1,4 +1,16 @@
 // Entry for @buefy/themes/fluent
+//
+// Configurable from Sass:
+//   @use "pkg:@buefy/themes/fluent" with ($accent: #7957d5);
+//   @use "pkg:@buefy/themes/fluent" with ($accent: #7957d5, $accent-dark: #b39cf0);
+//   @use "pkg:@buefy/themes/fluent" with ($accent: none);   // keep your own Bulma palette
+//
+// $accent       a colour, or none to skip palette generation. Default: Fluent blue.
+// $accent-dark  a colour for dark mode. Default: Fluent's dark blue, or, when only
+//               $accent is set, $accent lightened until it is readable on the dark page.
+$accent: null !default;
+$accent-dark: null !default;
+
 @use "../themes/fluent";
 
-@include fluent.output();
+@include fluent.output($accent: $accent, $accent-dark: $accent-dark);
