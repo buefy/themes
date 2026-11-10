@@ -47,8 +47,19 @@ const CASES = [
   { theme: 'glass', os: 'light', viewport: 'desktop', dir: 'rtl' }
 ]
 
+// Text is invisible, but it still sizes buttons, inputs and tags, so a machine's
+// installed fonts would shift the layout and cause false diffs (this happened on
+// the first CI run: pages came out 3px taller on the runner). Ahem has fixed,
+// square glyph metrics, so layout is identical everywhere. See fonts/README.md.
+const AHEM = readFileSync(path.join(root, 'tests/visual/fonts/Ahem.ttf')).toString('base64')
+
 const STABILISE = `
+  @font-face { font-family: "Ahem"; src: url(data:font/ttf;base64,${AHEM}) format("truetype"); }
   *, *::before, *::after {
+    font-family: "Ahem" !important;
+    font-kerning: none !important;
+    font-variant-ligatures: none !important;
+    letter-spacing: normal !important;
     -webkit-text-fill-color: transparent !important;
     text-shadow: none !important;
     caret-color: transparent !important;
@@ -65,7 +76,14 @@ async function screenshot({ theme, os, viewport, dir = 'ltr' }) {
   const { page, close } = await openGallery({ theme, os, dir, viewport: VIEWPORTS[viewport] })
   try {
     await page.addStyleTag({ content: STABILISE })
+    await page.evaluate(() => document.fonts.load('16px Ahem'))
     await page.evaluate(() => document.fonts.ready)
+    // If the font failed to load, the layout would silently depend on system fonts.
+    const font = await page.evaluate(() => ({
+      loaded: document.fonts.check('16px Ahem'),
+      applied: getComputedStyle(document.querySelector('h1')).fontFamily
+    }))
+    assert.ok(font.loaded && font.applied.includes('Ahem'), `Ahem must be active for stable screenshots: ${JSON.stringify(font)}`)
     return await page.screenshot({ fullPage: true, animations: 'disabled', caret: 'hide' })
   } finally {
     await close()

@@ -24,7 +24,7 @@ const toasts = ['', 'is-primary', 'is-success', 'is-warning', 'is-danger']
   .join('\n        ')
 
 // Overlays are shown in normal flow.
-const staticNotices = 'style="position:static;display:block;padding:0;pointer-events:auto"'
+const staticNotices = 'style="position:static !important;display:block;padding:0;pointer-events:auto"'
 const staticMenu = 'style="position:static;display:block"'
 const staticModal = 'style="position:static;display:block;height:auto;overflow:visible"'
 
