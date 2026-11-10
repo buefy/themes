@@ -19,10 +19,10 @@
   "author": "Wesley Ford",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/buefy/buefy-themes.git"
+    "url": "git+https://github.com/buefy/themes.git"
   },
-  "bugs": "https://github.com/buefy/buefy-themes/issues",
-  "homepage": "https://github.com/buefy/buefy-themes#readme",
+  "bugs": "https://github.com/buefy/themes/issues",
+  "homepage": "https://github.com/buefy/themes#readme",
   "type": "module",
   "sideEffects": [
     "*.css"

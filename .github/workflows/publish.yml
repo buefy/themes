@@ -11,8 +11,12 @@ on:
 
 jobs:
   publish:
-    # Only publish releases tagged from main; workflow_dispatch allows manual runs.
-    if: github.event_name == 'workflow_dispatch' || github.event.release.target_commitish == 'main'
+    # Only publish from main: releases tagged from main, or a manual run started
+    # on the main branch. The npm-publish environment should enforce the same rule
+    # in its settings; this keeps the workflow safe even if it does not.
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'release' && github.event.release.target_commitish == 'main')
     runs-on: ubuntu-latest
     environment: npm-publish
     permissions:
