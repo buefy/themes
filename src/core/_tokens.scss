@@ -26,7 +26,9 @@ $schema: (
   "material-blur": "Backdrop blur radius for frosted surfaces",
   "material-saturate": "Backdrop saturation multiplier",
   "material-tint": "Surface tint laid over the blurred backdrop",
-  "material-border": "Hairline edge colour for material surfaces"
+  "material-border": "Hairline edge colour for material surfaces",
+  "surface-page": "Page background (the layer everything sits on)",
+  "surface-raised": "Cards, boxes, dropdowns, modal cards: the layer above the page"
 ) !default;
 
 // Neutral defaults. Themes override individual keys with merge().
@@ -47,7 +49,9 @@ $light: (
   "material-blur": 20px,
   "material-saturate": 1.25,
   "material-tint": rgba(255, 255, 255, 0.72),
-  "material-border": rgba(0, 0, 0, 0.08)
+  "material-border": rgba(0, 0, 0, 0.08),
+  "surface-page": var(--bulma-scheme-main),
+  "surface-raised": var(--bulma-scheme-main)
 ) !default;
 
 // Dark values only differ where the light value would look wrong on dark

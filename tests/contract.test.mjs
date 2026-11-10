@@ -7,14 +7,19 @@ import path from 'node:path'
 import postcss from 'postcss'
 import { root } from './helpers.mjs'
 
-const THEMES = ['elevated']
+const THEMES = ['elevated', 'fluent']
 
 // Rules that add behaviour Buefy never had, so there is nothing upstream to match.
 const ADDITIONS = new Set(['.switch input[type=checkbox]:focus-visible + .check'])
 
 // Selectors Buefy/Bulma define, but without the property we add (e.g. no
 // default modal-card shadow). The selector itself must still exist upstream.
-const SELECTOR_ONLY = new Set(['.modal-card'])
+const SELECTOR_ONLY = new Set(['.modal-card', '.dropdown-content'])
+
+// Longhands we set where Buefy declares the shorthand (or the longhand itself).
+const ACCEPTED_UPSTREAM = {
+  'transition-timing-function': ['transition', 'transition-timing-function']
+}
 
 const normalize = (selector) =>
   selector.replace(/\s+/g, ' ').replace(/::(before|after)/g, ':$1').replace(/="([^"]*)"/g, '=$1').trim()
@@ -62,10 +67,17 @@ for (const theme of THEMES) {
         }
         for (const d of mapped) {
           checked++
-          const hostLevel = rel === '' || rel === '[data-theme]' || /^\.theme-(light|dark)$/.test(rel)
+          // The theme host and its light/dark variants (data-theme, .theme-*,
+          // the system-dark :not() form) all re-register Bulma's root variables.
+          const hostLevel =
+            rel === '' ||
+            /^\[data-theme(=(light|dark))?\]$/.test(rel) ||
+            /^\.theme-(light|dark)$/.test(rel) ||
+            /^(:not\([^)]*\))+$/.test(rel)
+          const accepted = ACCEPTED_UPSTREAM[d.prop] ?? [d.prop]
           if (hostLevel) {
-            if (!upstream.allProps.has(d.prop)) problems.push(`${rel || ':root'}: ${d.prop} is not declared anywhere in Buefy`)
-          } else if (!upstream.bySelector.get(rel)?.has(d.prop)) {
+            if (!accepted.some((p) => upstream.allProps.has(p))) problems.push(`${rel || ':root'}: ${d.prop} is not declared anywhere in Buefy`)
+          } else if (!accepted.some((p) => upstream.bySelector.get(rel)?.has(p))) {
             problems.push(`${rel}: Buefy no longer declares ${d.prop} on this selector`)
           }
         }

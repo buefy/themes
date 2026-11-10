@@ -1,1 +1,37 @@
-// @buefy/themes core: material (placeholder, implemented in a later milestone)
+// Frosted ("acrylic-style") surfaces, used sparingly on transient layers.
+//
+// Every frosted surface starts from a solid fallback and only upgrades when it
+// is safe:
+//   - no backdrop-filter support        -> solid surface-raised
+//   - prefers-reduced-transparency      -> solid surface-raised, no blur
+//   - forced-colors (high contrast)     -> system Canvas, no blur
+//
+// Apply blur to leaf surfaces only. backdrop-filter makes an element the
+// containing block for fixed descendants, which would break containers such as
+// a navbar that hosts a fixed-position mobile dropdown.
+
+@mixin surface($host, $selectors) {
+  @each $selector in $selectors {
+    #{$host} #{$selector} {
+      background-color: var(--buefy-surface-raised);
+
+      @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+        background-color: var(--buefy-material-tint);
+        -webkit-backdrop-filter: blur(var(--buefy-material-blur)) saturate(var(--buefy-material-saturate));
+        backdrop-filter: blur(var(--buefy-material-blur)) saturate(var(--buefy-material-saturate));
+      }
+
+      @media (prefers-reduced-transparency: reduce) {
+        background-color: var(--buefy-surface-raised);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+      }
+
+      @media (forced-colors: active) {
+        background-color: Canvas;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+      }
+    }
+  }
+}

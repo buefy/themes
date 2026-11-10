@@ -13,18 +13,24 @@
 
 @use "tokens";
 
+//
+// A theme can pass a content block `using ($mode)` to emit extra declarations
+// (e.g. a generated colour palette) into every light and dark block. $mode is
+// "light" or "dark".
 @mixin themed($host, $light, $dark) {
   // Light values: the host itself and any explicitly light subtree.
   #{$host},
   #{$host} [data-theme="light"],
   #{$host} .theme-light {
     @include tokens.emit($light);
+    @content("light");
   }
 
   // Dark by system preference, unless the app forced light on the host.
   @media (prefers-color-scheme: dark) {
     #{$host}:not([data-theme="light"]):not(.theme-light) {
       @include tokens.emit($dark);
+      @content("dark");
     }
   }
 
@@ -34,15 +40,20 @@
   #{$host} [data-theme="dark"],
   #{$host} .theme-dark {
     @include tokens.emit($dark);
+    @content("dark");
   }
 }
 
 // Standalone entry: applies to the whole document as soon as it is imported.
 @mixin standalone($light, $dark) {
-  @include themed(":root:root", $light, $dark);
+  @include themed(":root:root", $light, $dark) using ($mode) {
+    @content($mode);
+  }
 }
 
 // Multi-theme entry: applies only while <html data-buefy-theme="$name"> is set.
 @mixin scoped($name, $light, $dark) {
-  @include themed(':root:root[data-buefy-theme="#{$name}"]', $light, $dark);
+  @include themed(':root:root[data-buefy-theme="#{$name}"]', $light, $dark) using ($mode) {
+    @content($mode);
+  }
 }

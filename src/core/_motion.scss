@@ -21,6 +21,16 @@
     --bulma-easing: var(--buefy-motion-ease-standard);
   }
 
+  // Things entering decelerate (via --bulma-easing above); things leaving
+  // accelerate. Buefy's leave classes otherwise share the entering curve.
+  #{$host} .fade-leave-active,
+  #{$host} .zoom-in-leave-active,
+  #{$host} .zoom-out-leave-active,
+  #{$host} .slide-down-leave-active,
+  #{$host} .slide-up-leave-active {
+    transition-timing-function: var(--buefy-motion-ease-accelerate);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     @include hosts($host) {
       --bulma-speed: 0.01ms;

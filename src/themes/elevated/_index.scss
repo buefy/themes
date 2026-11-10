@@ -23,7 +23,10 @@ $light: map.merge(
     "elevation-4": (0 0 8px rgba(0, 0, 0, 0.12), 0 14px 28px rgba(0, 0, 0, 0.14)),
     "focus-ring-width": 2px,
     "focus-ring-offset": 2px,
-    "focus-ring-color": hsl(221, 100%, 40%)
+    "focus-ring-color": hsl(221, 100%, 40%),
+    // Keeps Bulma's own colours: page and cards share one layer.
+    "surface-page": var(--bulma-scheme-main),
+    "surface-raised": var(--bulma-scheme-main)
   )
 );
 

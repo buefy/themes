@@ -2,7 +2,7 @@
 
 Official themes for [Buefy](https://buefy.org) (Vue 3, built on Bulma v1). They add elevation, restrained materials, purposeful motion and calmer hierarchy, with no changes to your markup and no runtime JavaScript.
 
-> **Status: pre-release.** `elevated` is implemented; `fluent`, `glass` and the multi-theme entry are not yet. Nothing here is published.
+> **Status: pre-release.** `elevated` and `fluent` are implemented; `glass` and the multi-theme entry are not yet. Nothing here is published.
 
 ## Planned usage
 
@@ -14,7 +14,7 @@ import '@buefy/themes/fluent'   // or /elevated, /glass
 | Subpath | Look |
 |---|---|
 | `@buefy/themes/elevated` | Conservative upgrade: keeps Bulma colours, adds a consistent four-level elevation scale, calmer motion, reduced-motion support and a visible focus ring. **Available now.** |
-| `@buefy/themes/fluent` | Calm, precise, productivity-app feel. |
+| `@buefy/themes/fluent` | Calm, precise, productivity-app feel: neutral two-layer surfaces, a generated blue accent, system font stack, tighter radii, hairline strokes, decelerate-in motion and acrylic-style frosted dropdown flyouts (solid fallback for reduced transparency, forced colours and older browsers). **Available now.** |
 | `@buefy/themes/glass` | Frosted transient surfaces (dropdowns, modals, toasts). |
 | `@buefy/themes` | All themes, inactive until `<html data-buefy-theme="fluent">` is set. |
 
@@ -32,7 +32,7 @@ Requires Node 20 or newer (`.nvmrc` pins 22).
 npm install
 npm run build    # compile src/entries/* to dist/
 npm test         # build, check exports, publint, unit + contract + real-browser tests
-npm run playground  # after a build: open playground/dist/index.html
+npm run playground  # after a build: open playground/dist/index.html (THEME=fluent for fluent)
 ```
 
 Browser tests use Playwright; install the browser once with `npx playwright-core install chromium-headless-shell`.

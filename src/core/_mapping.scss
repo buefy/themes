@@ -13,10 +13,17 @@
 
 // Component selector -> (--bulma-<var> -> --buefy-<token>)
 $component-vars: (
-  ".box": ("box-shadow": "elevation-1"),
-  ".card": ("card-shadow": "elevation-1"),
-  ".dropdown": ("dropdown-content-shadow": "elevation-2"),
-  ".datepicker": ("datepicker-shadow": "elevation-2"),
+  ".box": ("box-shadow": "elevation-1", "box-background-color": "surface-raised"),
+  ".card": ("card-shadow": "elevation-1", "card-background-color": "surface-raised"),
+  ".dropdown": (
+    "dropdown-content-shadow": "elevation-2",
+    "dropdown-content-background-color": "surface-raised"
+  ),
+  ".datepicker": ("datepicker-shadow": "elevation-2", "datepicker-background-color": "surface-raised"),
+  ".modal": (
+    "modal-card-head-background-color": "surface-raised",
+    "modal-card-body-background-color": "surface-raised"
+  ),
   ".navbar": ("navbar-dropdown-boxed-shadow": "elevation-2"),
   ".notices": (
     "notices-box-shadow": "elevation-3",
@@ -27,6 +34,11 @@ $component-vars: (
 );
 
 @mixin apply($host) {
+  // Bulma registers the page background on :root, so the host (root) only.
+  #{$host} {
+    --bulma-body-background-color: var(--buefy-surface-page);
+  }
+
   @each $selector, $vars in $component-vars {
     #{$host} #{$selector} {
       @each $var, $token in $vars {

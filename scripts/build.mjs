@@ -10,6 +10,10 @@ const root = fileURLToPath(new URL('..', import.meta.url))
 const dist = path.join(root, 'dist')
 const pkg = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'))
 
+// Lightning CSS encodes versions as major << 16 | minor << 8.
+const v = (major, minor = 0) => (major << 16) | (minor << 8)
+const targets = { chrome: v(100), edge: v(100), firefox: v(100), safari: v(15, 4) }
+
 // entry file -> output name
 const entries = {
   _all: 'all',
@@ -26,12 +30,16 @@ for (const [file, name] of Object.entries(entries)) {
     loadPaths: [path.join(root, 'node_modules')],
     importers: [new sass.NodePackageImporter()],
     style: 'expanded',
-    silenceDeprecations: []
+    // Bulma's own Sass triggers deprecation warnings we cannot fix here.
+    quietDeps: true
   })
   const { code } = transform({
     filename: `${name}.css`,
     code: Buffer.from(result.css),
-    minify: false
+    minify: false,
+    // Without targets Lightning CSS strips vendor prefixes it thinks are
+    // unnecessary, which would drop -webkit-backdrop-filter for older Safari.
+    targets
   })
   await writeFile(path.join(dist, `${name}.css`), code)
 }

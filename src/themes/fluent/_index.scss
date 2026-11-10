@@ -1,1 +1,109 @@
-// @buefy/themes theme: fluent (placeholder, implemented in a later milestone)
+// fluent: calm, precise, productivity-app feel. Inspired by Microsoft's Fluent
+// Design System; not affiliated with or endorsed by Microsoft. No Microsoft
+// fonts, icons or assets are bundled: fonts are only named in a fallback stack.
+//
+// On top of the elevated foundations it adds:
+//   - neutral (grey) surfaces in two layers, like a Mica-style page behind cards
+//   - a blue accent generated with Bulma's own palette mixins, so derived
+//     shades and accessible foreground colours stay correct
+//   - a system font stack and tighter radii
+//   - hairline strokes folded into every elevation level
+//   - decelerate-in motion, plus an acrylic-style frosted dropdown flyout
+
+@use "sass:map";
+@use "bulma/sass/utilities/css-variables" as cv;
+@use "../../core/tokens";
+
+// Accent. #0f6cbd, expressed as HSL so Bulma can derive its shade ladder.
+$accent: hsl(209, 85%, 40%) !default;
+
+// CSS selectors that get the frosted-glass flyout material.
+$flyouts: (".dropdown-content");
+
+$font-stack: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Roboto", "Helvetica Neue", sans-serif;
+
+// Key + ambient shadow layers plus a hairline stroke ring.
+$_stroke-light: 0 0 0 1px rgba(0, 0, 0, 0.06);
+$_stroke-dark: 0 0 0 1px rgba(255, 255, 255, 0.08);
+
+$light: (
+  "elevation-1": (0 0 2px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.14), $_stroke-light),
+  "elevation-2": (0 0 2px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.14), $_stroke-light),
+  "elevation-3": (0 0 2px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.14), $_stroke-light),
+  "elevation-4": (0 0 8px rgba(0, 0, 0, 0.12), 0 14px 28px rgba(0, 0, 0, 0.14), $_stroke-light),
+  "motion-duration-fast": 100ms,
+  "motion-duration-normal": 150ms,
+  "motion-duration-slow": 250ms,
+  "motion-ease-standard": cubic-bezier(0.1, 0.9, 0.2, 1),
+  "motion-ease-decelerate": cubic-bezier(0.1, 0.9, 0.2, 1),
+  "motion-ease-accelerate": cubic-bezier(0.9, 0.1, 1, 0.2),
+  "focus-ring-width": 2px,
+  "focus-ring-offset": 2px,
+  "focus-ring-color": hsl(0, 0%, 12%),
+  "material-blur": 30px,
+  "material-saturate": 1.25,
+  "material-tint": rgba(255, 255, 255, 0.85),
+  "material-border": rgba(0, 0, 0, 0.06),
+  // Mica-style: the page is the tinted layer, cards are the lighter one.
+  "surface-page": var(--bulma-background),
+  "surface-raised": var(--bulma-scheme-main)
+);
+
+$dark: map.merge(
+  $light,
+  (
+    "elevation-1": (0 0 2px rgba(0, 0, 0, 0.24), 0 1px 2px rgba(0, 0, 0, 0.28), $_stroke-dark),
+    "elevation-2": (0 0 2px rgba(0, 0, 0, 0.24), 0 4px 8px rgba(0, 0, 0, 0.28), $_stroke-dark),
+    "elevation-3": (0 0 2px rgba(0, 0, 0, 0.24), 0 8px 16px rgba(0, 0, 0, 0.28), $_stroke-dark),
+    "elevation-4": (0 0 8px rgba(0, 0, 0, 0.24), 0 14px 28px rgba(0, 0, 0, 0.28), $_stroke-dark),
+    "focus-ring-color": hsl(0, 0%, 96%),
+    // 0.9, not 0.85: at 0.85 flyout text drops to 4.39:1 over a pure-white
+    // backdrop, just under WCAG AA (found by tests/fluent.test.mjs).
+    "material-tint": hsla(0, 0%, 16%, 0.9),
+    "material-border": rgba(255, 255, 255, 0.08),
+    // Dark Bulma: the page is the darkest layer, cards sit above it.
+    "surface-page": var(--bulma-scheme-main),
+    "surface-raised": var(--bulma-background)
+  )
+);
+
+// Validate against the public schema at compile time.
+$_check-light: tokens.merge((), $light);
+$_check-dark: tokens.merge((), $dark);
+
+// Declarations emitted into every light/dark block (see scope.themed).
+@mixin host-extras($mode) {
+  // Neutral greys instead of Bulma's blue-grey.
+  --bulma-scheme-s: 0%;
+  --bulma-text-s: 0%;
+
+  --bulma-family-primary: #{$font-stack};
+
+  // Tighter radii.
+  --bulma-radius-small: 2px;
+  --bulma-radius: 4px;
+  --bulma-radius-medium: 6px;
+  --bulma-radius-large: 8px;
+
+  // Accent: Bulma only generates a full palette in light; dark reuses the same
+  // base colour and only recomputes the on-scheme (text) shades for the dark
+  // surface, exactly as Bulma's own dark theme does.
+  $scheme-main: hsl(0, 0%, 9%);
+  @if $mode == light {
+    $scheme-main: hsl(0, 0%, 100%);
+  }
+  @each $name in ("primary", "link") {
+    @if $mode == light {
+      @include cv.generate-color-palette($name, $accent, 100%);
+    }
+    @include cv.generate-on-scheme-colors($name, $accent, $scheme-main);
+  }
+}
+
+// Component rules that need the doubled-host specificity.
+@mixin components($host) {
+  // Bulma hardcodes the card radius instead of reading --bulma-radius-large.
+  #{$host} .card {
+    --bulma-card-radius: var(--bulma-radius-large);
+  }
+}
