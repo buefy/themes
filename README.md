@@ -70,6 +70,59 @@ import manifest from '@buefy/themes/manifest' with { type: 'json' }
 
 CSS sizes (unminified / gzipped): `elevated` 5.5 KB / 1.0 KB, `fluent` 54.8 KB / 4.9 KB, `glass` 11.8 KB / 1.6 KB, all three 76.2 KB / 6.6 KB. Exact figures for each build are in the manifest, and CI enforces a budget (`size-budget.json`) so growth has to be deliberate. `fluent` is the largest because it generates a complete colour palette for both light and dark.
 
+## Screenshots
+
+Buefy overlays (a dropdown, a modal card, toasts and a snackbar) and a frosted-surface demo over a colourful backdrop, in light and dark. Regenerate them with `npm run docs:screenshots`.
+
+| | Light | Dark |
+|---|---|---|
+| `elevated` | ![elevated, light](https://raw.githubusercontent.com/buefy/themes/main/docs/images/elevated-light.png) | ![elevated, dark](https://raw.githubusercontent.com/buefy/themes/main/docs/images/elevated-dark.png) |
+| `fluent` | ![fluent, light](https://raw.githubusercontent.com/buefy/themes/main/docs/images/fluent-light.png) | ![fluent, dark](https://raw.githubusercontent.com/buefy/themes/main/docs/images/fluent-dark.png) |
+| `glass` | ![glass, light](https://raw.githubusercontent.com/buefy/themes/main/docs/images/glass-light.png) | ![glass, dark](https://raw.githubusercontent.com/buefy/themes/main/docs/images/glass-dark.png) |
+
+## Customising
+
+### Tokens
+
+Every theme is a set of values for these public custom properties, and they are the supported way to customise a theme. Components read them (through Bulma's own `--bulma-*` variables), so changing one changes every component that uses it. `dist/manifest.json` lists the same tokens.
+
+| Token | Controls |
+|---|---|
+| `--buefy-elevation-1` | Resting surfaces: box, card |
+| `--buefy-elevation-2` | Raised surfaces: navbar dropdown, dropdown, datepicker, tooltip |
+| `--buefy-elevation-3` | Transient notices: toast, snackbar, notification |
+| `--buefy-elevation-4` | Overlays: modal, sidebar |
+| `--buefy-motion-duration-fast` | Hover and press feedback |
+| `--buefy-motion-duration-normal` | Most state changes |
+| `--buefy-motion-duration-slow` | Entrances of large surfaces |
+| `--buefy-motion-ease-standard` | Default curve |
+| `--buefy-motion-ease-decelerate` | Elements entering |
+| `--buefy-motion-ease-accelerate` | Elements leaving |
+| `--buefy-focus-ring-width` | Focus ring thickness |
+| `--buefy-focus-ring-offset` | Gap between element and focus ring |
+| `--buefy-focus-ring-color` | Focus ring colour |
+| `--buefy-material-blur` | Backdrop blur radius for frosted surfaces |
+| `--buefy-material-saturate` | Backdrop saturation multiplier |
+| `--buefy-material-tint` | Surface tint laid over the blurred backdrop |
+| `--buefy-material-border` | Hairline edge colour for material surfaces |
+| `--buefy-surface-page` | Page background (the layer everything sits on) |
+| `--buefy-surface-raised` | Cards, boxes, dropdowns, modal cards: the layer above the page |
+
+Not every theme uses every token (`elevated` does not set the `material-*` tokens, for example), and not every component reads every token.
+
+### Overriding a token
+
+A theme sets its tokens with deliberately high specificity, so that it wins over Buefy's own CSS whatever the stylesheet order. That means a plain `:root { … }` rule in your app does **not** override it, and `:root:root { … }` only works in light mode. Use this selector, which beats every light, dark and `data-buefy-theme` variant of every entry:
+
+```css
+html:root:root:root:root:root {
+  --buefy-elevation-2: 0 6px 20px rgb(0 0 0 / 0.18);
+  --buefy-motion-duration-normal: 120ms;
+}
+```
+
+This is tested for all three themes and the root entry, in light, dark and forced light/dark. An override applies to both colour schemes, so set the dark value yourself under `html[data-theme="dark"]:root:root:root:root:root` (and an `@media (prefers-color-scheme: dark)` block) if the two should differ. A forced-dark or forced-light subtree (`data-theme` on an inner element) sets its own tokens and is not reached by a root override.
+
 ## Frosted material and accessibility
 
 Frosted surfaces (`fluent` flyouts, `glass`) are translucent over a blurred backdrop. They fall back to a solid surface when `backdrop-filter` is unsupported, under `prefers-reduced-transparency`, and in forced-colors mode. Each fallback is exercised in a real browser.

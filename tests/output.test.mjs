@@ -106,3 +106,18 @@ test('manifest: token list is the schema, and the richest theme sets every token
   const unused = manifest.tokens.map((t) => t.property).filter((p) => !fluent.has(p))
   assert.deepEqual(unused, [])
 })
+
+test('README: documents every public token, and only tokens that exist', () => {
+  const readme = read('README.md')
+  const documented = new Set([...readme.matchAll(/^\| `(--buefy-[\w-]+)` \|/gm)].map((m) => m[1]))
+  const actual = new Set(manifest.tokens.map((t) => t.property))
+  assert.deepEqual([...actual].filter((p) => !documented.has(p)), [], 'tokens missing from the README table')
+  assert.deepEqual([...documented].filter((p) => !actual.has(p)), [], 'README documents tokens that do not exist')
+})
+
+test('README: every screenshot it links exists', () => {
+  const readme = read('README.md')
+  const images = [...readme.matchAll(/raw\.githubusercontent\.com\/buefy\/themes\/main\/(docs\/images\/[\w-]+\.png)/g)].map((m) => m[1])
+  assert.equal(images.length, 6)
+  for (const image of images) assert.ok(statSync(path.join(root, image)).size > 10_000, image)
+})
