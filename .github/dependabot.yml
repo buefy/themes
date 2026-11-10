@@ -1,0 +1,32 @@
+# Keeps dependencies and GitHub Actions current. Version updates arrive as pull
+# requests, so the full test suite (including the visual and consumer jobs) vets
+# each one before it is merged.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # Playwright, Sass, Lightning CSS and friends move together and are all
+      # dev-only: one PR a week instead of one per package.
+      dev-dependencies:
+        dependency-type: development
+        update-types: [minor, patch]
+    # buefy and bulma are the packages themes are built against. Their major
+    # versions change what the themes must override, so they are upgraded on
+    # purpose, not by a bot.
+    ignore:
+      - dependency-name: buefy
+        update-types: ["version-update:semver-major"]
+      - dependency-name: bulma
+        update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "chore(deps)"
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci(deps)"
