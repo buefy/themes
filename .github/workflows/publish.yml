@@ -1,30 +1,46 @@
-name: Publish
+name: Publish @buefy/themes to NPM
 
-# Publishes to npm with provenance when a version tag (v*) is pushed.
+# Publishes when a GitHub release is published from main (or on a manual run),
+# after the full test suite and the consumer install tests pass. Uses npm Trusted
+# Publishing (OIDC), so there is no NPM_TOKEN secret; provenance is generated
+# automatically.
 on:
-  push:
-    tags: ['v*']
-
-permissions:
-  contents: read
-  id-token: write # npm provenance
+  release:
+    types: [published]
+  workflow_dispatch:
 
 jobs:
   publish:
+    # Only publish releases tagged from main; workflow_dispatch allows manual runs.
+    if: github.event_name == 'workflow_dispatch' || github.event.release.target_commitish == 'main'
     runs-on: ubuntu-latest
+    environment: npm-publish
+    permissions:
+      contents: read
+      id-token: write # Trusted Publishing (OIDC) and provenance
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: "22.x"
+          registry-url: "https://registry.npmjs.org/"
           cache: npm
-          registry-url: https://registry.npmjs.org
+      # Trusted Publishing (OIDC) requires npm >= 11.5.1
+      - run: npm install -g npm@latest
       - run: npm ci
-      - run: npx playwright-core install --with-deps chromium-headless-shell
-      - run: npm test
-      - name: Check tag matches package version
-        run: |
-          [ "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME" ] || { echo "tag $GITHUB_REF_NAME does not match package.json version"; exit 1; }
-      - run: npm publish --provenance --access public
+      - name: Check the release tag matches package.json
+        if: github.event_name == 'release'
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          expected="v$(node -p "require('./package.json').version")"
+          if [ "$expected" != "$RELEASE_TAG" ]; then
+            echo "release tag $RELEASE_TAG does not match package.json version ($expected)"
+            exit 1
+          fi
+      - run: npx playwright-core install --with-deps chromium-headless-shell
+      # build, exports check, size budget, publint, unit/contract, browser, axe, visual
+      - run: npm test
+      # pack the tarball and install it into a fresh project
+      - run: npm run test:consumers
+      - run: npm publish --access public

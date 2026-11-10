@@ -8,10 +8,16 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  test:
+    name: test (node ${{ matrix.node }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         node: [20, 22, 24]
     steps:
@@ -22,7 +28,30 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright-core install --with-deps chromium-headless-shell
+      # build, exports check, size budget, publint, unit/contract tests,
+      # real-browser tests (themes, axe audit) and visual regression
       - run: npm test
-      - name: Pack tarball
+      - name: Upload visual diffs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diffs-node-${{ matrix.node }}
+          path: tests/visual/__diff__
+          if-no-files-found: ignore
+      - name: Show what would be published
         if: matrix.node == 22
         run: npm pack --dry-run
+
+  consumers:
+    name: consumers (install the packed tarball)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Packs the tarball and installs it into a fresh project with the current
+      # Vite, Vue, Sass and TypeScript. Needs the npm registry.
+      - run: npm run test:consumers

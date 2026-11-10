@@ -1,0 +1,7 @@
+{
+  "_comment": "Maximum size of each CSS file in bytes (raw and gzipped). `npm run verify` fails if a build exceeds it. Budgets sit about 10% above the 0.1.0 sizes, so growth has to be deliberate: raise a number here in the same commit that explains why.",
+  "elevated": { "bytes": 6200, "gzip": 1150 },
+  "fluent": { "bytes": 62000, "gzip": 5600 },
+  "glass": { "bytes": 13400, "gzip": 1850 },
+  "all": { "bytes": 86000, "gzip": 7500 }
+}

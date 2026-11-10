@@ -1,6 +1,6 @@
 {
   "name": "@buefy/themes",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Official themes for Buefy: elevation, materials and motion for a more modern look. Inspired by, not affiliated with, Microsoft Fluent.",
   "keywords": [
     "buefy",
@@ -80,10 +80,11 @@
     "clean": "node scripts/clean.mjs",
     "playground": "node scripts/playground.mjs",
     "build": "node scripts/build.mjs",
-    "verify": "node scripts/verify-exports.mjs && publint",
+    "verify": "node scripts/verify-exports.mjs && node scripts/check-size.mjs && publint",
     "test:unit": "node --test tests/tokens.test.mjs tests/contract.test.mjs tests/output.test.mjs",
     "test:cascade": "node --test tests/cascade.test.mjs tests/themes.test.mjs tests/fluent.test.mjs tests/glass.test.mjs tests/all.test.mjs tests/a11y.test.mjs",
     "test:visual": "node --test tests/visual.test.mjs",
+    "test:consumers": "node --test tests/consumers.test.mjs",
     "test": "npm run build && npm run verify && npm run test:unit && npm run test:cascade && npm run test:visual",
     "prepack": "npm run build"
   },
