@@ -6,7 +6,8 @@ import { SURFACES, launch, shutdown, open, shadow, style, rootVar } from './harn
 
 const THEMES = [
   { name: 'elevated', layered: false },
-  { name: 'fluent', layered: true } // page and cards are different layers
+  { name: 'fluent', layered: true }, // page and cards are different layers
+  { name: 'glass', layered: false } // page content stays opaque on one layer
 ]
 
 before(launch)
@@ -115,13 +116,20 @@ for (const { name, layered } of THEMES) {
           assert.equal(ring.style, 'solid')
         }
 
-        // Tab order: the switch's hidden checkbox comes first, then the link.
-        await page.keyboard.press('Tab')
-        assert.equal(await page.evaluate(() => document.activeElement?.type), 'checkbox')
+        // Tab until the target has focus, so the test does not depend on how
+        // many other focusable elements the page happens to contain.
+        const tabUntil = async (reached) => {
+          for (let i = 0; i < 30; i++) {
+            await page.keyboard.press('Tab')
+            if (await page.evaluate(reached)) return
+          }
+          throw new Error('keyboard focus never reached the target')
+        }
+
+        await tabUntil(() => document.activeElement?.type === 'checkbox')
         expectRing(await ringOf('.switch .check'))
 
-        await page.keyboard.press('Tab')
-        assert.equal(await page.evaluate(() => document.activeElement?.id), 'link')
+        await tabUntil(() => document.activeElement?.id === 'link')
         expectRing(await ringOf('#link'))
       } finally {
         await close()

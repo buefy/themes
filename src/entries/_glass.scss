@@ -1,1 +1,33 @@
-// Entry for @buefy/themes/glass (placeholder)
+// Entry for @buefy/themes/glass
+@use "../core/scope";
+@use "../core/mapping";
+@use "../core/material";
+@use "../themes/glass";
+
+@include scope.standalone(glass.$light, glass.$dark) using ($mode) {
+  @include glass.host-extras($mode);
+}
+@include mapping.standalone();
+@include glass.components(":root:root");
+
+// Dropdown flyouts and the modal card share the tint token.
+@include material.surface(":root:root", glass.$flyouts);
+
+// Neutral toasts and snackbars: their own background, made partly translucent.
+// Coloured (is-*) toasts are excluded by the selector and stay solid.
+@include material.surface(
+  ":root:root",
+  (glass.$toast-selector),
+  var(--bulma-toast-background-color),
+  color-mix(in srgb, var(--bulma-toast-background-color) glass.$notice-opacity, transparent),
+  glass.$color-mix-support
+);
+@include material.surface(
+  ":root:root",
+  (".notices .snackbar"),
+  var(--bulma-snackbar-background-color),
+  color-mix(in srgb, var(--bulma-snackbar-background-color) glass.$notice-opacity, transparent),
+  glass.$color-mix-support
+);
+
+@include glass.navbar(":root:root");

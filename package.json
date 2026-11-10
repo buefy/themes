@@ -62,7 +62,7 @@
     "build": "node scripts/build.mjs",
     "verify": "node scripts/verify-exports.mjs && publint",
     "test:unit": "node --test tests/tokens.test.mjs tests/contract.test.mjs",
-    "test:cascade": "node --test tests/cascade.test.mjs tests/themes.test.mjs tests/fluent.test.mjs",
+    "test:cascade": "node --test tests/cascade.test.mjs tests/themes.test.mjs tests/fluent.test.mjs tests/glass.test.mjs",
     "test": "npm run build && npm run verify && npm run test:unit && npm run test:cascade",
     "prepack": "npm run build"
   },

@@ -1,1 +1,153 @@
-// @buefy/themes theme: glass (placeholder, implemented in a later milestone)
+// glass: expressive. Frosted transient surfaces over an opaque page.
+//
+// Frosted: dropdown flyouts, modal cards, toasts, snackbars, and (opt-in with
+// `.is-glass`) the navbar. Page content (boxes, cards, tables, inputs, buttons)
+// stays opaque, so text never sits on an unpredictable backdrop.
+//
+// Built on Bulma's own colours; it adds soft diffused shadows, rounder corners,
+// slower fluid motion and the material layer. Not affiliated with any vendor.
+
+@use "sass:map";
+@use "../../core/tokens";
+@use "../../core/material";
+
+// Frosted with the shared tint token.
+$flyouts: (".dropdown-content", ".modal-card");
+
+// Neutral notices are frosted: the default toast and the snackbar. Their tint is
+// the notice's own background at 90%, so it follows light/dark automatically.
+//
+// Coloured toasts (is-success, is-danger, ...) are NOT frosted. Their colour
+// carries meaning, and translucency shifts it: an is-link toast at 90% over a
+// white backdrop measures 4.02:1, and reaching AA would need ~97% opacity,
+// which leaves no visible frost. They keep Bulma's exact solid colour.
+// (Custom colours added through Bulma's $custom-colors are not in this list.)
+$notice-opacity: 90% !default;
+$notice-colors: ("white", "black", "light", "text", "primary", "link", "info", "success", "warning", "danger");
+$_not: "";
+@each $color in $notice-colors {
+  $_not: $_not + ":not(.is-#{$color})";
+}
+$toast-selector: ".notices .toast#{$_not}";
+$color-mix-support: "(background-color: color-mix(in srgb, red, transparent))";
+
+$_stroke-light: 0 0 0 1px rgba(0, 0, 0, 0.05);
+$_stroke-dark: 0 0 0 1px rgba(255, 255, 255, 0.1);
+
+$light: (
+  "elevation-1": (0 1px 3px rgba(0, 0, 0, 0.08), $_stroke-light),
+  "elevation-2": (0 4px 16px rgba(0, 0, 0, 0.1), $_stroke-light),
+  "elevation-3": (0 8px 24px rgba(0, 0, 0, 0.12), $_stroke-light),
+  "elevation-4": (0 16px 48px rgba(0, 0, 0, 0.16), $_stroke-light),
+  "motion-duration-fast": 120ms,
+  "motion-duration-normal": 200ms,
+  "motion-duration-slow": 300ms,
+  "motion-ease-standard": cubic-bezier(0.2, 0, 0, 1),
+  "motion-ease-decelerate": cubic-bezier(0.05, 0.7, 0.1, 1),
+  "motion-ease-accelerate": cubic-bezier(0.3, 0, 0.8, 0.15),
+  "focus-ring-width": 2px,
+  "focus-ring-offset": 2px,
+  "focus-ring-color": hsl(221, 100%, 40%),
+  "material-blur": 24px,
+  "material-saturate": 1.6,
+  "material-tint": rgba(255, 255, 255, 0.72),
+  "material-border": rgba(0, 0, 0, 0.08),
+  // Page content stays opaque and on one layer, exactly as Bulma draws it.
+  "surface-page": var(--bulma-scheme-main),
+  "surface-raised": var(--bulma-scheme-main)
+);
+
+$dark: map.merge(
+  $light,
+  (
+    "elevation-1": (0 1px 3px rgba(0, 0, 0, 0.3), $_stroke-dark),
+    "elevation-2": (0 4px 16px rgba(0, 0, 0, 0.36), $_stroke-dark),
+    "elevation-3": (0 8px 24px rgba(0, 0, 0, 0.42), $_stroke-dark),
+    "elevation-4": (0 16px 48px rgba(0, 0, 0, 0.5), $_stroke-dark),
+    "focus-ring-color": hsl(221, 100%, 75%),
+    // 0.9: lower opacities drop dark-mode text below WCAG AA over a white backdrop.
+    "material-tint": hsla(221, 14%, 14%, 0.9),
+    "material-border": rgba(255, 255, 255, 0.12)
+  )
+);
+
+// Validate against the public schema at compile time.
+$_check-light: tokens.merge((), $light);
+$_check-dark: tokens.merge((), $dark);
+
+// Declarations emitted into every light/dark block (see scope.themed).
+@mixin host-extras($mode) {
+  // Rounder corners than Bulma's defaults.
+  --bulma-radius-small: 0.375rem;
+  --bulma-radius: 0.5rem;
+  --bulma-radius-medium: 0.75rem;
+  --bulma-radius-large: 1rem;
+}
+
+// Component rules that need the doubled-host specificity. These come after the
+// shared mapping in the entry so they win on source order.
+@mixin components($host) {
+  // Bulma hardcodes the card radius instead of reading --bulma-radius-large.
+  #{$host} .card {
+    --bulma-card-radius: var(--bulma-radius-large);
+  }
+
+  // The modal card paints its head, body and foot separately, each opaque. Make
+  // them transparent so the frosted .modal-card behind them shows through, and
+  // round the card itself so the frost matches the rounded head and foot.
+  #{$host} .modal {
+    --bulma-modal-card-head-background-color: transparent;
+    --bulma-modal-card-body-background-color: transparent;
+    --bulma-modal-card-foot-background-color: transparent;
+  }
+  #{$host} .modal-card {
+    border-radius: var(--bulma-radius-large);
+  }
+}
+
+// Opt-in frosted navbar: <nav class="navbar is-glass">.
+//
+// The blur sits on a ::before layer, not on the navbar, because backdrop-filter
+// would make the navbar the containing block for the fixed-position mobile
+// dropdown it hosts. Without the feature (or under reduced transparency or
+// forced colours) the navbar keeps its normal solid background.
+@mixin navbar($host) {
+  @supports #{material.$backdrop-support} {
+    #{$host} .navbar.is-glass {
+      isolation: isolate;
+      background-color: transparent;
+    }
+    #{$host} .navbar.is-glass:not(.is-fixed-top):not(.is-fixed-bottom) {
+      position: relative;
+    }
+    #{$host} .navbar.is-glass:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-color: var(--buefy-material-tint);
+      border-bottom: 1px solid var(--buefy-material-border);
+      -webkit-backdrop-filter: blur(var(--buefy-material-blur)) saturate(var(--buefy-material-saturate));
+      backdrop-filter: blur(var(--buefy-material-blur)) saturate(var(--buefy-material-saturate));
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    #{$host} .navbar.is-glass {
+      background-color: var(--bulma-navbar-background-color);
+    }
+    #{$host} .navbar.is-glass:before {
+      display: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    #{$host} .navbar.is-glass {
+      background-color: var(--bulma-navbar-background-color);
+    }
+    #{$host} .navbar.is-glass:before {
+      display: none;
+    }
+  }
+}

@@ -28,14 +28,29 @@ export const SURFACES = [
 export const MARKUP = `
   <div class="box"></div>
   <div class="card"></div>
-  <div class="dropdown"><div class="dropdown-content"></div></div>
+  <div class="dropdown"><div class="dropdown-content"><a class="dropdown-item" id="dd-item" href="#d">Item</a></div></div>
   <div class="datepicker"><div class="dropdown-content"></div></div>
   <nav class="navbar"><div class="navbar-dropdown is-boxed"></div></nav>
   <div class="b-tooltip"><div class="tooltip-content"></div></div>
   <div class="carousel-list has-shadow"></div>
   <div class="notices"><div class="toast"></div><div class="snackbar"></div></div>
+  <div class="notices">
+    <div class="toast" id="toast-default">Saved</div>
+    <div class="toast is-primary" id="toast-primary">Saved</div>
+    <div class="toast is-link" id="toast-link">Saved</div>
+    <div class="toast is-info" id="toast-info">Saved</div>
+    <div class="toast is-success" id="toast-success">Saved</div>
+    <div class="toast is-warning" id="toast-warning">Saved</div>
+    <div class="toast is-danger" id="toast-danger">Saved</div>
+    <div class="snackbar" id="snackbar"><div class="text">Saved</div></div>
+  </div>
+  <nav class="navbar" id="plain-nav"><div class="navbar-brand"><a class="navbar-item" href="#p">Home</a></div></nav>
+  <nav class="navbar is-glass" id="glass-nav">
+    <div class="navbar-brand"><a class="navbar-item" id="glass-nav-item" href="#g">Home</a></div>
+    <div id="fixed-child" style="position:fixed;top:0;left:0;width:1px;height:1px"></div>
+  </nav>
   <div class="b-sidebar"><div class="sidebar-content"></div></div>
-  <div class="modal"><div class="modal-card"><header class="modal-card-head"></header></div></div>
+  <div class="modal"><div class="modal-card"><header class="modal-card-head"></header><section class="modal-card-body" id="modal-body">Body</section><footer class="modal-card-foot"></footer></div></div>
   <div class="b-table"><div class="table-wrapper is-card-list"><table><tr><td>x</td></tr></table></div></div>
   <label class="switch"><input type="checkbox"><span class="check"></span></label>
   <a id="link" href="#x">link</a>
@@ -60,19 +75,22 @@ export async function shutdown() {
   await browser?.close()
 }
 
-// theme: 'elevated' | 'fluent' | null (Buefy only)
+// theme: 'elevated' | 'fluent' | 'glass' | null (Buefy only)
+// css:   overrides the theme stylesheet text (e.g. to simulate missing features)
 export async function open({
   theme = null,
+  css = null,
   os = 'light',
   order = 'theme-first',
   reducedMotion = 'no-preference',
   forcedColors = 'none'
 } = {}) {
   const buefy = buefyCss
-  const sheets = theme
+  const themeSheet = css ?? (theme ? themeCss(theme) : null)
+  const sheets = themeSheet
     ? order === 'theme-first'
-      ? [themeCss(theme), buefy]
-      : [buefy, themeCss(theme)]
+      ? [themeSheet, buefy]
+      : [buefy, themeSheet]
     : [buefy]
   const context = await browser.newContext({ colorScheme: os, reducedMotion, forcedColors })
   const page = await context.newPage()
@@ -90,6 +108,14 @@ export const style = (page, selector, prop, pseudo) =>
 
 export const rootVar = (page, name) =>
   page.evaluate((n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim(), name)
+
+// Colour of a translucent `bg` laid over a solid backdrop, as an rgb() string.
+export function compositeOver(bg, backdrop) {
+  const { r, g, b, a } = parseRgb(bg)
+  const mix = (c, back) => Math.round(c * a + back * (1 - a))
+  return `rgb(${mix(r, backdrop.r)}, ${mix(g, backdrop.g)}, ${mix(b, backdrop.b)})`
+}
+export const BACKDROPS = { black: { r: 0, g: 0, b: 0 }, white: { r: 255, g: 255, b: 255 } }
 
 // --- colour helpers (computed styles are always rgb()/rgba()) ---
 export function parseRgb(value) {

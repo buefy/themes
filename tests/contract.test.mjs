@@ -7,14 +7,26 @@ import path from 'node:path'
 import postcss from 'postcss'
 import { root } from './helpers.mjs'
 
-const THEMES = ['elevated', 'fluent']
+const THEMES = ['elevated', 'fluent', 'glass']
 
 // Rules that add behaviour Buefy never had, so there is nothing upstream to match.
-const ADDITIONS = new Set(['.switch input[type=checkbox]:focus-visible + .check'])
+const ADDITIONS = new Set([
+  '.switch input[type=checkbox]:focus-visible + .check',
+  // glass: opt-in frosted navbar (a class Buefy does not define)
+  '.navbar.is-glass',
+  '.navbar.is-glass:not(.is-fixed-top):not(.is-fixed-bottom)',
+  '.navbar.is-glass:before'
+])
 
 // Selectors Buefy/Bulma define, but without the property we add (e.g. no
 // default modal-card shadow). The selector itself must still exist upstream.
-const SELECTOR_ONLY = new Set(['.modal-card', '.dropdown-content'])
+const SELECTOR_ONLY = new Set([
+  '.modal-card',
+  '.dropdown-content',
+  // Notices set `background:` (shorthand); we set background-color + backdrop-filter.
+  '.notices .toast',
+  '.notices .snackbar'
+])
 
 // Longhands we set where Buefy declares the shorthand (or the longhand itself).
 const ACCEPTED_UPSTREAM = {
@@ -60,9 +72,11 @@ for (const theme of THEMES) {
       for (const selector of rule.selectors) {
         const rel = stripHost(selector)
         if (ADDITIONS.has(rel)) continue
-        if (SELECTOR_ONLY.has(rel)) {
+        // Ignore trailing :not(...) exclusions we add when looking the selector up.
+        const base = rel.replace(/(:not\([^)]*\))+$/, '')
+        if (SELECTOR_ONLY.has(base)) {
           checked++
-          if (!upstream.bySelector.has(rel)) problems.push(`${rel}: selector no longer exists in Buefy`)
+          if (!upstream.bySelector.has(base)) problems.push(`${base}: selector no longer exists in Buefy`)
           continue
         }
         for (const d of mapped) {

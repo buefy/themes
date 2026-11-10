@@ -2,7 +2,7 @@
 
 Official themes for [Buefy](https://buefy.org) (Vue 3, built on Bulma v1). They add elevation, restrained materials, purposeful motion and calmer hierarchy, with no changes to your markup and no runtime JavaScript.
 
-> **Status: pre-release.** `elevated` and `fluent` are implemented; `glass` and the multi-theme entry are not yet. Nothing here is published.
+> **Status: pre-release.** `elevated`, `fluent` and `glass` are implemented; the multi-theme entry is not yet. Nothing here is published.
 
 ## Planned usage
 
@@ -15,10 +15,14 @@ import '@buefy/themes/fluent'   // or /elevated, /glass
 |---|---|
 | `@buefy/themes/elevated` | Conservative upgrade: keeps Bulma colours, adds a consistent four-level elevation scale, calmer motion, reduced-motion support and a visible focus ring. **Available now.** |
 | `@buefy/themes/fluent` | Calm, precise, productivity-app feel: neutral two-layer surfaces, a generated blue accent, system font stack, tighter radii, hairline strokes, decelerate-in motion and acrylic-style frosted dropdown flyouts (solid fallback for reduced transparency, forced colours and older browsers). **Available now.** |
-| `@buefy/themes/glass` | Frosted transient surfaces (dropdowns, modals, toasts). |
+| `@buefy/themes/glass` | Frosted transient surfaces over an opaque page: dropdown flyouts, modal cards, neutral toasts and snackbars, plus an opt-in frosted navbar (`<nav class="navbar is-glass">`). Soft diffused shadows and rounder corners. Boxes, cards, tables, inputs and buttons stay opaque, and coloured toasts (`is-success`, `is-link`, …) keep Bulma's exact solid colour, because translucency would shift their meaning and break contrast. Everything has a solid fallback. **Available now.** |
 | `@buefy/themes` | All themes, inactive until `<html data-buefy-theme="fluent">` is set. |
 
 Sass users will be able to `@use "pkg:@buefy/themes/fluent"`.
+
+## Frosted material and accessibility
+
+Frosted surfaces (`fluent` flyouts, `glass`) are translucent over a blurred backdrop. They fall back to a solid surface when `backdrop-filter` is unsupported, under `prefers-reduced-transparency`, and in forced-colors mode. The tests check WCAG AA (4.5:1) text contrast over worst-case pure black and pure white backdrops, in light and dark. Custom colours added through Bulma's `$custom-colors` are not part of the standard-colour exclusion list, so verify the contrast of any custom-coloured toast under `glass`.
 
 ## Disclaimer
 

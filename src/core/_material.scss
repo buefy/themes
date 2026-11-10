@@ -2,33 +2,51 @@
 //
 // Every frosted surface starts from a solid fallback and only upgrades when it
 // is safe:
-//   - no backdrop-filter support        -> solid surface-raised
-//   - prefers-reduced-transparency      -> solid surface-raised, no blur
-//   - forced-colors (high contrast)     -> system Canvas, no blur
+//   - no backdrop-filter support        -> solid
+//   - prefers-reduced-transparency      -> solid, no blur
+//   - forced-colors (high contrast)     -> solid, no blur (the UA also swaps
+//                                          in system colours)
 //
 // Apply blur to leaf surfaces only. backdrop-filter makes an element the
 // containing block for fixed descendants, which would break containers such as
-// a navbar that hosts a fixed-position mobile dropdown.
+// a navbar that hosts a fixed-position mobile dropdown. For containers, put the
+// blur on a ::before layer instead (see the glass theme's navbar).
 
-@mixin surface($host, $selectors) {
+$backdrop-support: "((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)))";
+
+// $solid:    background used when blur is unavailable or unwanted.
+// $tint:     translucent background laid over the blurred backdrop.
+// $requires: extra @supports condition the tint depends on, e.g. color-mix().
+@mixin surface(
+  $host,
+  $selectors,
+  $solid: var(--buefy-surface-raised),
+  $tint: var(--buefy-material-tint),
+  $requires: null
+) {
+  $condition: $backdrop-support;
+  @if $requires {
+    $condition: "#{$backdrop-support} and #{$requires}";
+  }
+
   @each $selector in $selectors {
     #{$host} #{$selector} {
-      background-color: var(--buefy-surface-raised);
+      background-color: $solid;
 
-      @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-        background-color: var(--buefy-material-tint);
+      @supports #{$condition} {
+        background-color: $tint;
         -webkit-backdrop-filter: blur(var(--buefy-material-blur)) saturate(var(--buefy-material-saturate));
         backdrop-filter: blur(var(--buefy-material-blur)) saturate(var(--buefy-material-saturate));
       }
 
       @media (prefers-reduced-transparency: reduce) {
-        background-color: var(--buefy-surface-raised);
+        background-color: $solid;
         -webkit-backdrop-filter: none;
         backdrop-filter: none;
       }
 
       @media (forced-colors: active) {
-        background-color: Canvas;
+        background-color: $solid;
         -webkit-backdrop-filter: none;
         backdrop-filter: none;
       }

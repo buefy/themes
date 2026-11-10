@@ -51,6 +51,17 @@ await writeFile(
   </div>
 </div>
 <label class="switch"><input type="checkbox" checked><span class="check"></span></label>
+<h2 class="subtitle" style="margin-top:2rem">Frosted surfaces over a colourful backdrop (glass, fluent flyouts)</h2>
+<div style="padding:1.5rem;border-radius:1rem;background:linear-gradient(135deg,#ff6b6b,#feca57 35%,#48dbfb 70%,#5f27cd)">
+  <nav class="navbar is-glass" style="border-radius:.5rem"><div class="navbar-brand"><a class="navbar-item" href="#">Glass navbar</a><a class="navbar-item" href="#">Docs</a></div></nav>
+  <div class="dropdown is-active" style="margin:1rem 0">
+    <div class="dropdown-menu" style="position:static;display:block"><div class="dropdown-content"><a class="dropdown-item" href="#">Frosted flyout</a><a class="dropdown-item" href="#">Second item</a></div></div>
+  </div>
+  <div class="notices" style="position:static;display:block;padding:0">
+    <div class="snackbar" style="display:inline-flex"><div class="text">Snackbar (frosted in glass)</div></div>
+    <div class="toast is-success" style="display:inline-flex">Coloured toast (always solid)</div>
+  </div>
+</div>
 </body>
 </html>
 `
