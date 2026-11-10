@@ -1,29 +1,57 @@
-// A static, accessible gallery of Buefy components, written with the markup
+// A static gallery of Buefy components, written with markup modelled on what
 // Buefy renders. Shared by the playground, the axe-core audit and the visual
 // regression tests, so all three look at the same thing.
 //
-// Overlays (dropdown, modal card, toast, snackbar) are shown inline instead of
-// floating, so they can be audited and screenshotted like everything else.
+// What this page deliberately does NOT model (checked against Buefy's source):
+//  - Overlays are shown in normal flow instead of floating. So positioning,
+//    z-index, pointer-events, stacking and enter/leave transitions of dropdowns,
+//    modals, toasts and snackbars are not exercised here.
+//  - The modal has no `.modal-background` scrim and no `role`/`aria-modal`. Buefy
+//    emits both, but in flow the scrim would cover the page.
+//  - Toasts have no `role="alert"`. Buefy adds it, but five static toasts would
+//    each be announced on load.
+//  - Tabs use `aria-current="page"` rather than Buefy's tablist/tab roles, which
+//    depend on a script-managed roving tabindex that a static page does not have.
+//  - Dropdown ARIA (aria-haspopup on the trigger, role/aria-modal on the content)
+//    is driven by props Buefy only sets on request, so none is modelled.
+//
+// The few interactions that exist (tab switching, and the buttons that close a
+// notification, the dialog or the snackbar, plus the playground's scheme/theme
+// buttons) are small inline scripts; nothing else here responds to clicks. The
+// dropdown is shown open and does not toggle.
+
+const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
+export const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (c) => HTML_ESCAPES[c])
+
+// Joins class names, skipping empty ones, so no stray spaces end up in markup.
+const cls = (...names) => names.filter(Boolean).join(' ')
+
+// 'is-primary' -> 'primary'
+const IS_PREFIX = 'is-'
+const colorName = (modifier) => (modifier ? modifier.slice(IS_PREFIX.length) : '')
+const withArticle = (word) => `${/^[aeiou]/i.test(word) ? 'an' : 'a'} ${word}`
 
 const buttons = ['', 'is-primary', 'is-link', 'is-info', 'is-success', 'is-warning', 'is-danger', 'is-light', 'is-dark']
-  .map((c) => `<button class="button ${c}" type="button">${c ? c.slice(3) : 'default'}</button>`)
+  .map((c) => `<button class="${cls('button', c)}" type="button">${colorName(c) || 'default'}</button>`)
   .join('\n      ')
 
 const notifications = ['is-primary', 'is-info', 'is-success', 'is-warning', 'is-danger']
   .map(
-    (c) => `<div class="notification ${c}"><button class="delete" type="button" aria-label="Dismiss ${c.slice(3)} notification"></button>This is a ${c.slice(3)} notification.</div>`
+    (c) =>
+      `<div class="${cls('notification', c)}"><button class="delete" type="button" aria-label="Dismiss ${colorName(c)} notification"></button>This is ${withArticle(colorName(c))} notification.</div>`
   )
   .join('\n      ')
 
 const tags = ['', 'is-primary', 'is-info', 'is-success', 'is-warning', 'is-danger', 'is-light', 'is-dark']
-  .map((c) => `<span class="tag ${c}">${c ? c.slice(3) : 'tag'}</span>`)
+  .map((c) => `<span class="${cls('tag', c)}">${colorName(c) || 'tag'}</span>`)
   .join('\n        ')
 
 const toasts = ['', 'is-primary', 'is-success', 'is-warning', 'is-danger']
-  .map((c) => `<div class="toast ${c}">${c ? `${c.slice(3)} toast` : 'Neutral toast'}</div>`)
+  .map((c) => `<div class="${cls('toast', c)}">${c ? `${colorName(c)} toast` : 'Neutral toast'}</div>`)
   .join('\n        ')
 
-// Overlays are shown in normal flow.
+// Overlays are shown in normal flow. These must stay inline (and !important for
+// the notices) to beat Buefy's own positioning rules.
 const staticNotices = 'style="position:static !important;display:block;padding:0;pointer-events:auto"'
 const staticMenu = 'style="position:static;display:block"'
 const staticModal = 'style="position:static;display:block;height:auto;overflow:visible"'
@@ -50,7 +78,7 @@ const sections = `
           </div>
           <div class="field">
             <label class="label" for="g-email">Email</label>
-            <div class="control"><input class="input is-danger" id="g-email" type="email" value="not-an-email" aria-describedby="g-email-help"></div>
+            <div class="control"><input class="input is-danger" id="g-email" type="email" value="not-an-email" aria-invalid="true" aria-describedby="g-email-help"></div>
             <p class="help is-danger" id="g-email-help">This email is invalid.</p>
           </div>
           <div class="field">
@@ -96,7 +124,7 @@ const sections = `
         ${tags}
       </div>
       <progress class="progress is-primary" value="40" max="100" aria-label="Upload progress">40%</progress>
-      <div class="tabs"><ul><li class="is-active"><a href="#h-surfaces">Overview</a></li><li><a href="#h-surfaces">Details</a></li><li><a href="#h-surfaces">History</a></li></ul></div>
+      <div class="tabs"><ul><li class="is-active"><a href="#h-surfaces" aria-current="page">Overview</a></li><li><a href="#h-surfaces">Details</a></li><li><a href="#h-surfaces">History</a></li></ul></div>
       <table class="table is-striped is-hoverable is-fullwidth">
         <caption class="is-sr-only">Sample data</caption>
         <thead><tr><th scope="col">Name</th><th scope="col">Role</th></tr></thead>
@@ -109,7 +137,7 @@ const sections = `
       <div class="columns">
         <div class="column">
           <div class="dropdown is-active">
-            <div class="dropdown-trigger"><button class="button" type="button" aria-haspopup="true" aria-controls="g-menu">Dropdown</button></div>
+            <div class="dropdown-trigger"><button class="button" type="button" aria-haspopup="true" aria-expanded="true" aria-controls="g-menu">Dropdown</button></div>
             <div class="dropdown-menu" id="g-menu" ${staticMenu}>
               <div class="dropdown-content">
                 <a class="dropdown-item" href="#h-overlays">Profile</a>
@@ -122,7 +150,7 @@ const sections = `
         </div>
         <div class="column">
           <div class="modal is-active" ${staticModal}>
-            <div class="modal-card" style="margin:0;width:100%;max-width:26rem">
+            <div class="modal-card g-modal-card">
               <header class="modal-card-head"><p class="modal-card-title">Confirm</p><button class="delete" type="button" aria-label="Close dialog"></button></header>
               <section class="modal-card-body"><p>Are you sure you want to continue?</p></section>
               <footer class="modal-card-foot"><button class="button is-primary" type="button">Yes</button><button class="button" type="button">Cancel</button></footer>
@@ -132,31 +160,90 @@ const sections = `
       </div>
       <div class="notices" ${staticNotices}>
         ${toasts}
-        <div class="snackbar" style="display:inline-flex"><div class="text">Message archived</div><div class="action"><button class="button" type="button">Undo</button></div></div>
+        <div class="snackbar g-snackbar"><div class="text">Message archived</div><div class="action"><button class="button" type="button">Undo</button></div></div>
       </div>
     </section>
 
-    <section id="backdrop-demo" aria-label="Frosted surfaces over a colourful backdrop" style="padding:1.5rem;border-radius:1rem;background:linear-gradient(135deg,#ff6b6b,#feca57 35%,#48dbfb 70%,#5f27cd)">
-      <nav class="navbar is-glass" aria-label="Glass navigation" style="border-radius:.5rem">
+    <section id="backdrop-demo" class="g-backdrop" aria-label="Frosted surfaces over a colourful backdrop">
+      <nav class="navbar is-glass g-glass-nav" aria-label="Glass navigation">
         <div class="navbar-brand"><a class="navbar-item" href="#backdrop-demo">Glass navbar</a><a class="navbar-item" href="#backdrop-demo">Docs</a></div>
       </nav>
-      <div class="dropdown is-active" style="margin:1rem 0">
+      <div class="dropdown is-active g-flyout">
         <div class="dropdown-menu" ${staticMenu}><div class="dropdown-content"><a class="dropdown-item" href="#backdrop-demo">Frosted flyout</a><a class="dropdown-item" href="#backdrop-demo">Second item</a></div></div>
       </div>
-      <div class="notices" ${staticNotices}><div class="snackbar" style="display:inline-flex"><div class="text">Frosted snackbar</div></div></div>
+      <div class="notices" ${staticNotices}><div class="snackbar g-snackbar"><div class="text">Frosted snackbar</div></div></div>
     </section>`
 
-// sheets: CSS texts, in cascade order. htmlAttrs: extra attributes on <html>.
-// before/after: extra HTML at the start/end of <main> (the playground's controls).
-export function galleryHtml({ sheets = [], htmlAttrs = '', dir = 'ltr', title = 'Buefy themes gallery', before = '' } = {}) {
+// Styles that belong to the gallery itself (not to Buefy or a theme).
+const GALLERY_CSS = `
+main section{margin-block:2rem}
+main .notification,main .message{margin-block-end:1rem}
+main .g-snackbar{display:inline-flex}
+main .g-modal-card{margin:0;width:100%;max-width:26rem}
+main .g-backdrop{padding:1.5rem;border-radius:1rem;background:linear-gradient(135deg,#ff6b6b,#feca57 35%,#48dbfb 70%,#5f27cd)}
+main .g-glass-nav{border-radius:.5rem}
+main .g-flyout{margin:1rem 0}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none !important;animation:none !important}}
+`
+
+// The page's few interactions. Static demo links must not jump the page, tabs
+// switch, and a notification's close button hides it.
+const GALLERY_JS = `
+document.addEventListener('click', (event) => {
+  const del = event.target.closest('.notification > .delete')
+  if (del) {
+    del.parentElement.style.display = 'none'
+    return
+  }
+  // The dialog's close, Yes and Cancel buttons close it; a snackbar's Undo
+  // dismisses it. Their names promise an action, so they perform one.
+  const closeDialog = event.target.closest('.modal .delete, .modal .modal-card-foot .button')
+  if (closeDialog) {
+    closeDialog.closest('.modal').style.display = 'none'
+    return
+  }
+  const undo = event.target.closest('.snackbar .action .button')
+  if (undo) {
+    undo.closest('.snackbar').style.display = 'none'
+    return
+  }
+  const tab = event.target.closest('.tabs a')
+  if (tab) {
+    event.preventDefault()
+    const tabs = tab.closest('.tabs')
+    tabs.querySelectorAll('li').forEach((li) => li.classList.remove('is-active'))
+    tabs.querySelectorAll('a').forEach((a) => a.removeAttribute('aria-current'))
+    tab.parentElement.classList.add('is-active')
+    tab.setAttribute('aria-current', 'page')
+    return
+  }
+  // Demo links that go nowhere: keep them as links but do not scroll.
+  if (event.target.closest('.card-footer a, .dropdown-content a')) event.preventDefault()
+})
+`
+
+// sheets:   CSS texts, in cascade order.
+// htmlAttrs: extra attributes on <html> (a string, already valid HTML).
+// before / after: extra HTML at the start / end of the page container (the
+//           playground's controls and script). extraCss: extra CSS for the page.
+export function galleryHtml({
+  sheets = [],
+  htmlAttrs = '',
+  dir = 'ltr',
+  title = 'Buefy themes gallery',
+  before = '',
+  after = '',
+  extraCss = ''
+} = {}) {
+  const htmlTag = ['lang="en"', `dir="${escapeHtml(dir)}"`, htmlAttrs.trim()].filter(Boolean).join(' ')
   return `<!doctype html>
-<html lang="en" dir="${dir}" ${htmlAttrs}>
+<html ${htmlTag}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${title}</title>
+<title>${escapeHtml(title)}</title>
 ${sheets.map((s) => `<style>${s}</style>`).join('\n')}
-<style>main section{margin-block:2rem}main .notification,main .message{margin-block-end:1rem}</style>
+<style>${GALLERY_CSS}${extraCss}</style>
 </head>
 <body>
   <header>
@@ -174,13 +261,15 @@ ${sheets.map((s) => `<style>${s}</style>`).join('\n')}
   </header>
   <main class="section" id="main">
     <div class="container">
-      <h1 class="title">${title}</h1>
-      <p class="subtitle">Real Buefy markup, shown in flow.</p>
+      <h1 class="title">${escapeHtml(title)}</h1>
+      <p class="subtitle">Buefy-style markup shown in normal flow. Overlays are not positioned. Only the tabs, the buttons that close a notification, dialog or snackbar, and the switchers respond to clicks; the dropdown is shown open.</p>
       ${before}
       ${sections}
+      ${after}
     </div>
   </main>
   <footer class="footer"><div class="content has-text-centered"><p>@buefy/themes gallery</p></div></footer>
+  <script>${GALLERY_JS}</script>
 </body>
 </html>
 `
