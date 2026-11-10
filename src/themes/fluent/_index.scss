@@ -19,6 +19,8 @@
 
 // Accent. #0f6cbd, expressed as HSL so Bulma can derive its shade ladder.
 $accent: hsl(209, 85%, 40%) !default;
+// Dark mode accent: #479ef5, Fluent's dark-mode brand foreground.
+$accent-dark: hsl(209, 90%, 61%) !default;
 
 // CSS selectors that get the frosted-glass flyout material.
 $flyouts: (".dropdown-content");
@@ -88,18 +90,23 @@ $_check-dark: tokens.merge((), $dark);
   --bulma-radius-medium: 6px;
   --bulma-radius-large: 8px;
 
-  // Accent: Bulma only generates a full palette in light; dark reuses the same
-  // base colour and only recomputes the on-scheme (text) shades for the dark
-  // surface, exactly as Bulma's own dark theme does.
-  $scheme-main: hsl(0, 0%, 9%);
-  @if $mode == light {
-    $scheme-main: hsl(0, 0%, 100%);
+  // Accent. Bulma's own dark theme reuses the light palette, which works for its
+  // bright default turquoise but not for a darker blue: outlined and text
+  // buttons measured 3.22:1 on the dark page (found by the axe audit). So dark
+  // regenerates the whole palette from a lighter blue, which is how Fluent
+  // treats foreground brand colour in dark mode too. Bulma still derives the
+  // accessible text colour for every filled shade.
+  $base: $accent;
+  $scheme-main: hsl(0, 0%, 100%);
+  $scheme-main-l: 100%;
+  @if $mode == dark {
+    $base: $accent-dark;
+    $scheme-main: hsl(0, 0%, 9%);
+    $scheme-main-l: 9%;
   }
   @each $name in ("primary", "link") {
-    @if $mode == light {
-      @include cv.generate-color-palette($name, $accent, 100%);
-    }
-    @include cv.generate-on-scheme-colors($name, $accent, $scheme-main);
+    @include cv.generate-color-palette($name, $base, $scheme-main-l);
+    @include cv.generate-on-scheme-colors($name, $base, $scheme-main);
   }
 }
 

@@ -16,7 +16,10 @@ const MODES = [
   ['light OS', { os: 'light' }],
   ['dark OS', { os: 'dark' }],
   ['light OS, forced data-theme=dark', { os: 'light', dataTheme: 'dark' }],
-  ['dark OS, forced data-theme=light', { os: 'dark', dataTheme: 'light' }]
+  ['dark OS, forced data-theme=light', { os: 'dark', dataTheme: 'light' }],
+  ['reduced transparency', { os: 'light', reducedTransparency: true }],
+  ['forced colors', { os: 'light', forcedColors: 'active' }],
+  ['reduced motion', { os: 'dark', reducedMotion: 'reduce' }]
 ]
 
 const withAttrs = ({ dataTheme, ...rest }, extra = '') => ({

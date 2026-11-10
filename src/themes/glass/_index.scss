@@ -17,14 +17,16 @@
 $flyouts: (".dropdown-content", ".modal-card");
 
 // Neutral notices are frosted: the default toast and the snackbar. Their tint is
-// the notice's own background at 90%, so it follows light/dark automatically.
+// the notice's own background at 94%, so it follows light/dark automatically.
+// 94%, not lower: the snackbar's action button is success-green text, which falls
+// to 4.36:1 at 90% over a white backdrop (found by the axe audit); it needs ~92%.
 //
 // Coloured toasts (is-success, is-danger, ...) are NOT frosted. Their colour
 // carries meaning, and translucency shifts it: an is-link toast at 90% over a
 // white backdrop measures 4.02:1, and reaching AA would need ~97% opacity,
 // which leaves no visible frost. They keep Bulma's exact solid colour.
 // (Custom colours added through Bulma's $custom-colors are not in this list.)
-$notice-opacity: 90% !default;
+$notice-opacity: 94% !default;
 $notice-colors: ("white", "black", "light", "text", "primary", "link", "info", "success", "warning", "danger");
 $_not: "";
 @each $color in $notice-colors {

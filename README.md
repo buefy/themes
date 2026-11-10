@@ -68,7 +68,16 @@ CSS sizes (unminified / gzipped): `elevated` 5.6 KB / 1.0 KB, `fluent` 24.5 KB /
 
 ## Frosted material and accessibility
 
-Frosted surfaces (`fluent` flyouts, `glass`) are translucent over a blurred backdrop. They fall back to a solid surface when `backdrop-filter` is unsupported, under `prefers-reduced-transparency`, and in forced-colors mode. The tests check WCAG AA (4.5:1) text contrast over worst-case pure black and pure white backdrops, in light and dark. Custom colours added through Bulma's `$custom-colors` are not part of the standard-colour exclusion list, so verify the contrast of any custom-coloured toast under `glass`.
+Frosted surfaces (`fluent` flyouts, `glass`) are translucent over a blurred backdrop. They fall back to a solid surface when `backdrop-filter` is unsupported, under `prefers-reduced-transparency`, and in forced-colors mode. Each fallback is exercised in a real browser.
+
+What the test suite checks, in light and dark:
+
+- **Contrast:** WCAG AA (4.5:1) for text on frosted surfaces over worst-case pure black and pure white backdrops, and for button text, body text and the focus ring (3:1).
+- **axe-core audit** of a component gallery (WCAG 2.0, 2.1 and 2.2, levels A and AA). A theme must add no violation that plain Buefy does not already have. Plain Buefy itself has two contrast issues in the gallery (the default turquoise outlined button on white, and the `is-light` tag in dark mode); the themes neither add nor fix them, except that `fluent` replaces the turquoise.
+- **Visual regression:** screenshots of the gallery for every theme in light and dark, at desktop and mobile width, and right-to-left. Text is rendered transparent so results do not depend on installed fonts.
+- **Reduced motion, reduced transparency and forced colors** are emulated and verified.
+
+Custom colours added through Bulma's `$custom-colors` are not part of the standard-colour exclusion list, so verify the contrast of any custom-coloured toast under `glass`.
 
 ## Disclaimer
 
@@ -86,6 +95,8 @@ npm run playground  # after a build: open playground/dist/index.html (THEME=flue
 ```
 
 Browser tests use Playwright; install the browser once with `npx playwright-core install chromium-headless-shell`.
+
+Visual baselines live in `tests/visual/baseline/`. After an intentional visual change, review the result with `npm run playground` and regenerate them with `UPDATE_VISUAL=1 npm run test:visual`. A failed comparison writes the actual image and a diff to `tests/visual/__diff__/` (git-ignored).
 
 ### How a theme is built
 

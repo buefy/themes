@@ -2,7 +2,19 @@
   "name": "@buefy/themes",
   "version": "0.0.0",
   "description": "Official themes for Buefy: elevation, materials and motion for a more modern look. Inspired by, not affiliated with, Microsoft Fluent.",
-  "keywords": ["buefy", "bulma", "vue", "vue3", "theme", "themes", "css", "sass", "design-tokens", "fluent", "glassmorphism"],
+  "keywords": [
+    "buefy",
+    "bulma",
+    "vue",
+    "vue3",
+    "theme",
+    "themes",
+    "css",
+    "sass",
+    "design-tokens",
+    "fluent",
+    "glassmorphism"
+  ],
   "license": "MIT",
   "author": "Wesley Ford",
   "repository": {
@@ -12,8 +24,13 @@
   "bugs": "https://github.com/buefy/buefy-themes/issues",
   "homepage": "https://github.com/buefy/buefy-themes#readme",
   "type": "module",
-  "sideEffects": ["*.css"],
-  "files": ["dist", "src"],
+  "sideEffects": [
+    "*.css"
+  ],
+  "files": [
+    "dist",
+    "src"
+  ],
   "exports": {
     ".": {
       "types": "./dist/css.d.ts",
@@ -48,10 +65,13 @@
     }
   },
   "devDependencies": {
+    "axe-core": "^4.14.0",
     "buefy": "^3.1.0",
     "bulma": "^1.0.4",
     "lightningcss": "^1.30.0",
+    "pixelmatch": "^8.0.0",
     "playwright-core": "^1.55.0",
+    "pngjs": "^7.0.0",
     "postcss": "^8.5.0",
     "publint": "^0.3.0",
     "sass": "^1.89.0"
@@ -62,8 +82,9 @@
     "build": "node scripts/build.mjs",
     "verify": "node scripts/verify-exports.mjs && publint",
     "test:unit": "node --test tests/tokens.test.mjs tests/contract.test.mjs tests/output.test.mjs",
-    "test:cascade": "node --test tests/cascade.test.mjs tests/themes.test.mjs tests/fluent.test.mjs tests/glass.test.mjs tests/all.test.mjs",
-    "test": "npm run build && npm run verify && npm run test:unit && npm run test:cascade",
+    "test:cascade": "node --test tests/cascade.test.mjs tests/themes.test.mjs tests/fluent.test.mjs tests/glass.test.mjs tests/all.test.mjs tests/a11y.test.mjs",
+    "test:visual": "node --test tests/visual.test.mjs",
+    "test": "npm run build && npm run verify && npm run test:unit && npm run test:cascade && npm run test:visual",
     "prepack": "npm run build"
   },
   "engines": {

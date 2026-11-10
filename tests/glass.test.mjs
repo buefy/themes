@@ -80,6 +80,8 @@ for (const os of OS) {
         ['dropdown item', '#dd-item', '.dropdown .dropdown-content'],
         ['modal body', '#modal-body', '.modal-card'],
         ['snackbar', '#snackbar .text', '#snackbar'],
+        // success-green text: the tightest case (4.36:1 at 90% opacity over white)
+        ['snackbar action button', '#snackbar-action', '#snackbar'],
         ['neutral toast', '#toast-default', '#toast-default'],
         ['glass navbar item', '#glass-nav-item', '#glass-nav', '::before']
       ]
@@ -170,6 +172,36 @@ test('forced-colors mode removes every blur layer', async () => {
     }
     assert.equal(await style(page, '#glass-nav', 'display', '::before'), 'none')
   } finally {
+    await close()
+  }
+})
+
+test('prefers-reduced-transparency removes every blur layer and restores solid surfaces', async () => {
+  const bare = await open({})
+  const frosted = await open({ theme: 'glass' })
+  const { page, close } = await open({ theme: 'glass', reducedTransparency: true })
+  try {
+    assert.equal(
+      await page.evaluate(() => matchMedia('(prefers-reduced-transparency: reduce)').matches),
+      true,
+      'emulation must be active for this test to mean anything'
+    )
+    for (const selector of FROSTED) {
+      assert.match(await style(frosted.page, selector, 'backdropFilter'), /blur/, `sanity: ${selector} is frosted without the preference`)
+      assert.equal(await style(page, selector, 'backdropFilter'), 'none', selector)
+    }
+    for (const selector of ['.dropdown .dropdown-content', '.modal-card']) {
+      assert.equal(parseRgb(await style(page, selector, 'backgroundColor')).a, 1, `${selector} must be opaque`)
+    }
+    for (const selector of ['#toast-default', '#snackbar']) {
+      assert.equal(await style(page, selector, 'backgroundColor'), await style(bare.page, selector, 'backgroundColor'), selector)
+    }
+    // The glass navbar goes back to Bulma's solid navbar with no blur layer.
+    assert.equal(await style(page, '#glass-nav', 'backgroundColor'), await style(bare.page, '#glass-nav', 'backgroundColor'))
+    assert.equal(await style(page, '#glass-nav', 'display', '::before'), 'none')
+  } finally {
+    await bare.close()
+    await frosted.close()
     await close()
   }
 })

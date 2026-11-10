@@ -135,3 +135,6 @@ dist
 .yarn/install-state.gz
 .pnp.*
 playground/dist
+
+# Visual regression: actual/diff images from failed comparisons
+tests/visual/__diff__

@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { chromium } from 'playwright-core'
 import { root } from './helpers.mjs'
+import { galleryHtml } from '../scripts/gallery.mjs'
 
 export const buefyCss = readFileSync(path.join(root, 'node_modules/buefy/dist/css/buefy.css'), 'utf8')
 export const themeCss = (name) => readFileSync(path.join(root, 'dist', `${name}.css`), 'utf8')
@@ -42,7 +43,7 @@ export const MARKUP = `
     <div class="toast is-success" id="toast-success">Saved</div>
     <div class="toast is-warning" id="toast-warning">Saved</div>
     <div class="toast is-danger" id="toast-danger">Saved</div>
-    <div class="snackbar" id="snackbar"><div class="text">Saved</div></div>
+    <div class="snackbar" id="snackbar"><div class="text">Saved</div><div class="action"><button class="button" id="snackbar-action" type="button">Undo</button></div></div>
   </div>
   <nav class="navbar" id="plain-nav"><div class="navbar-brand"><a class="navbar-item" href="#p">Home</a></div></nav>
   <nav class="navbar is-glass" id="glass-nav">
@@ -75,6 +76,28 @@ export async function shutdown() {
   await browser?.close()
 }
 
+// The stylesheets for a page, in cascade order.
+function sheetsFor({ theme, css, order }) {
+  const themeSheet = css ?? (theme ? themeCss(theme) : null)
+  if (!themeSheet) return [buefyCss]
+  return order === 'theme-first' ? [themeSheet, buefyCss] : [buefyCss, themeSheet]
+}
+
+// A fresh browser context + page with the requested user preferences emulated.
+// prefers-reduced-transparency is not a Playwright option; Chromium supports it
+// through the DevTools protocol.
+async function newPage({ os, reducedMotion, forcedColors, reducedTransparency, viewport }) {
+  const context = await browser.newContext({ colorScheme: os, reducedMotion, forcedColors, ...(viewport && { viewport }) })
+  const page = await context.newPage()
+  if (reducedTransparency) {
+    const cdp = await context.newCDPSession(page)
+    await cdp.send('Emulation.setEmulatedMedia', {
+      features: [{ name: 'prefers-reduced-transparency', value: 'reduce' }]
+    })
+  }
+  return { page, context }
+}
+
 // theme:     'elevated' | 'fluent' | 'glass' | 'all' | null (Buefy only)
 // css:       overrides the theme stylesheet text (e.g. to simulate missing features)
 // htmlAttrs: extra attributes on <html>, e.g. 'data-buefy-theme="fluent"'
@@ -86,21 +109,33 @@ export async function open({
   order = 'theme-first',
   reducedMotion = 'no-preference',
   forcedColors = 'none',
+  reducedTransparency = false,
   htmlAttrs = '',
   bodyAttrs = ''
 } = {}) {
-  const buefy = buefyCss
-  const themeSheet = css ?? (theme ? themeCss(theme) : null)
-  const sheets = themeSheet
-    ? order === 'theme-first'
-      ? [themeSheet, buefy]
-      : [buefy, themeSheet]
-    : [buefy]
-  const context = await browser.newContext({ colorScheme: os, reducedMotion, forcedColors })
-  const page = await context.newPage()
+  const sheets = sheetsFor({ theme, css, order })
+  const { page, context } = await newPage({ os, reducedMotion, forcedColors, reducedTransparency })
   await page.setContent(
     `<!doctype html><html lang="en" ${htmlAttrs}><head>${sheets.map((s) => `<style>${s}</style>`).join('')}</head><body ${bodyAttrs}>${MARKUP}</body></html>`
   )
+  return { page, close: () => context.close() }
+}
+
+// The accessible component gallery (scripts/gallery.mjs) instead of the test markup.
+// dir: 'ltr' | 'rtl'; viewport: { width, height }
+export async function openGallery({
+  theme = null,
+  os = 'light',
+  dir = 'ltr',
+  htmlAttrs = '',
+  viewport = { width: 1280, height: 900 },
+  reducedMotion = 'no-preference',
+  forcedColors = 'none',
+  reducedTransparency = false
+} = {}) {
+  const sheets = sheetsFor({ theme, css: null, order: 'theme-first' })
+  const { page, context } = await newPage({ os, reducedMotion, forcedColors, reducedTransparency, viewport })
+  await page.setContent(galleryHtml({ sheets, htmlAttrs, dir }))
   return { page, close: () => context.close() }
 }
 

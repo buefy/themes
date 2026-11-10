@@ -13,22 +13,24 @@ after(shutdown)
 
 const OS = ['light', 'dark']
 
-// The accent is defined as hsl(209, 85%, 40%) in src/themes/fluent/_index.scss.
-// Resolve it through the browser so rounding matches exactly.
-async function accentRgb(page) {
-  return page.evaluate(() => {
+// The accents are defined in src/themes/fluent/_index.scss: $accent in light and
+// a lighter $accent-dark in dark mode (so outlined/text buttons stay legible on
+// a dark page). Resolve them through the browser so rounding matches exactly.
+const ACCENT = { light: 'hsl(209, 85%, 40%)', dark: 'hsl(209, 90%, 61%)' }
+async function accentRgb(page, os) {
+  return page.evaluate((hsl) => {
     const el = document.createElement('i')
-    el.style.color = 'hsl(209, 85%, 40%)'
+    el.style.color = hsl
     document.body.append(el)
     return getComputedStyle(el).color
-  })
+  }, ACCENT[os])
 }
 
 for (const os of OS) {
   test(`accent: primary and link buttons use the fluent blue (${os} OS)`, async () => {
     const { page, close } = await open({ theme: 'fluent', os })
     try {
-      const accent = await accentRgb(page)
+      const accent = await accentRgb(page, os)
       assert.equal(await style(page, '#btn-primary', 'backgroundColor'), accent)
       assert.equal(await style(page, '#btn-link', 'backgroundColor'), accent)
     } finally {
@@ -136,6 +138,24 @@ for (const os of OS) {
     }
   })
 }
+
+test('material falls back to a solid surface under prefers-reduced-transparency', async () => {
+  const frostedPref = await open({ theme: 'fluent' })
+  const { page, close } = await open({ theme: 'fluent', reducedTransparency: true })
+  try {
+    assert.equal(
+      await page.evaluate(() => matchMedia('(prefers-reduced-transparency: reduce)').matches),
+      true,
+      'emulation must be active for this test to mean anything'
+    )
+    assert.match(await style(frostedPref.page, '.dropdown .dropdown-content', 'backdropFilter'), /blur/, 'sanity: blur is on without the preference')
+    assert.equal(await style(page, '.dropdown .dropdown-content', 'backdropFilter'), 'none')
+    assert.equal(parseRgb(await style(page, '.dropdown .dropdown-content', 'backgroundColor')).a, 1, 'flyout must be opaque')
+  } finally {
+    await close()
+    await frostedPref.close()
+  }
+})
 
 test('material falls back to a solid surface in forced-colors mode', async () => {
   const { page, close } = await open({ theme: 'fluent', forcedColors: 'active' })
