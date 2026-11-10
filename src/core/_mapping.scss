@@ -1,1 +1,50 @@
-// @buefy/themes core: mapping (placeholder, implemented in a later milestone)
+// Binds public --buefy-* tokens to the --bulma-* variables that Bulma and
+// Buefy components actually read.
+//
+// Buefy re-registers component variables on the component selector (.box,
+// .card, .dropdown, ...), so a :root value would be shadowed. Each rule below
+// therefore targets the same selector Buefy uses, prefixed with $host to win
+// on specificity. tests/contract.test.mjs verifies every selector/variable pair
+// still exists in the installed Buefy CSS.
+
+@use "fixes";
+@use "focus";
+@use "motion";
+
+// Component selector -> (--bulma-<var> -> --buefy-<token>)
+$component-vars: (
+  ".box": ("box-shadow": "elevation-1"),
+  ".card": ("card-shadow": "elevation-1"),
+  ".dropdown": ("dropdown-content-shadow": "elevation-2"),
+  ".datepicker": ("datepicker-shadow": "elevation-2"),
+  ".navbar": ("navbar-dropdown-boxed-shadow": "elevation-2"),
+  ".notices": (
+    "notices-box-shadow": "elevation-3",
+    "toast-box-shadow": "elevation-3",
+    "snackbar-box-shadow": "elevation-3"
+  ),
+  ".b-sidebar": ("sidebar-box-shadow": "elevation-4")
+);
+
+@mixin apply($host) {
+  @each $selector, $vars in $component-vars {
+    #{$host} #{$selector} {
+      @each $var, $token in $vars {
+        --bulma-#{$var}: var(--buefy-#{$token});
+      }
+    }
+  }
+  @include fixes.apply($host);
+  @include motion.apply($host);
+  @include focus.apply($host);
+}
+
+// Standalone entry: whole document.
+@mixin standalone() {
+  @include apply(":root:root");
+}
+
+// Multi-theme entry: only while <html data-buefy-theme="$name"> is set.
+@mixin scoped($name) {
+  @include apply(':root:root[data-buefy-theme="#{$name}"]');
+}

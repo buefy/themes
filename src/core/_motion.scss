@@ -1,1 +1,32 @@
-// @buefy/themes core: motion (placeholder, implemented in a later milestone)
+// Motion: feeds Bulma/Buefy's speed and easing variables from motion tokens,
+// and honours prefers-reduced-motion.
+
+// Bulma re-registers easing/duration on [data-theme] and .theme-* elements, so
+// those subtrees need the mapping too.
+@mixin hosts($host) {
+  #{$host},
+  #{$host} [data-theme],
+  #{$host} .theme-light,
+  #{$host} .theme-dark {
+    @content;
+  }
+}
+
+@mixin apply($host) {
+  @include hosts($host) {
+    --bulma-speed: var(--buefy-motion-duration-fast);
+    --bulma-speed-slow: var(--buefy-motion-duration-normal);
+    --bulma-speed-slower: var(--buefy-motion-duration-slow);
+    --bulma-duration: var(--buefy-motion-duration-slow);
+    --bulma-easing: var(--buefy-motion-ease-standard);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    @include hosts($host) {
+      --bulma-speed: 0.01ms;
+      --bulma-speed-slow: 0.01ms;
+      --bulma-speed-slower: 0.01ms;
+      --bulma-duration: 0.01ms;
+    }
+  }
+}

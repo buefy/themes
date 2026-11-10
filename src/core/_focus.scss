@@ -1,1 +1,21 @@
-// @buefy/themes core: focus (placeholder, implemented in a later milestone)
+// Focus: ring width/offset feed Bulma's focus variables; colour is applied
+// directly because Bulma only exposes focus hue/saturation/lightness.
+
+@mixin apply($host) {
+  #{$host} {
+    --bulma-focus-width: var(--buefy-focus-ring-width);
+    --bulma-focus-offset: var(--buefy-focus-ring-offset);
+  }
+
+  #{$host} a:focus-visible,
+  #{$host} button:focus-visible {
+    outline-color: var(--buefy-focus-ring-color);
+  }
+
+  // Buefy hides the native switch input (outline: none) and only draws a glow
+  // on .check, which does not meet WCAG focus-visible expectations.
+  #{$host} .switch input[type=checkbox]:focus-visible + .check {
+    outline: var(--buefy-focus-ring-width) solid var(--buefy-focus-ring-color);
+    outline-offset: var(--buefy-focus-ring-offset);
+  }
+}

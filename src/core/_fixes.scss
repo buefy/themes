@@ -1,1 +1,22 @@
-// @buefy/themes core: fixes (placeholder, implemented in a later milestone)
+// Shadows that Buefy/Bulma hardcode or read straight from --bulma-shadow, so no
+// component variable can reach them. Each rule pins box-shadow to a token.
+// Remove entries here as the upstream sources become tokenised.
+
+// Selector -> token
+$shadows: (
+  ".navbar .navbar-dropdown.is-boxed": "elevation-2",
+  ".b-tooltip .tooltip-content": "elevation-2",
+  ".modal-card": "elevation-4",
+  ".modal-card-head": "elevation-1",
+  ".carousel-list.has-shadow": "elevation-2",
+  ".b-table .table-wrapper.is-card-list tr": "elevation-1",
+  ".switch input[type=checkbox] + .check:before": "elevation-1"
+);
+
+@mixin apply($host) {
+  @each $selector, $token in $shadows {
+    #{$host} #{$selector} {
+      box-shadow: var(--buefy-#{$token});
+    }
+  }
+}

@@ -1,1 +1,43 @@
-// @buefy/themes theme: elevated (placeholder, implemented in a later milestone)
+// elevated: conservative upgrade. Keeps Bulma's colours and adds a consistent
+// two-layer elevation scale, calmer motion and a visible focus ring.
+// Shadow layers follow Fluent's key + ambient model (inspired by, not copied from).
+
+@use "sass:map";
+@use "../../core/tokens";
+
+$_motion: (
+  "motion-duration-fast": 100ms,
+  "motion-duration-normal": 150ms,
+  "motion-duration-slow": 250ms,
+  "motion-ease-standard": cubic-bezier(0.33, 0, 0.67, 1),
+  "motion-ease-decelerate": cubic-bezier(0.1, 0.9, 0.2, 1),
+  "motion-ease-accelerate": cubic-bezier(0.9, 0.1, 1, 0.2)
+);
+
+$light: map.merge(
+  $_motion,
+  (
+    "elevation-1": (0 0 2px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.14)),
+    "elevation-2": (0 0 2px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.14)),
+    "elevation-3": (0 0 2px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.14)),
+    "elevation-4": (0 0 8px rgba(0, 0, 0, 0.12), 0 14px 28px rgba(0, 0, 0, 0.14)),
+    "focus-ring-width": 2px,
+    "focus-ring-offset": 2px,
+    "focus-ring-color": hsl(221, 100%, 40%)
+  )
+);
+
+$dark: map.merge(
+  $light,
+  (
+    "elevation-1": (0 0 2px rgba(0, 0, 0, 0.24), 0 1px 2px rgba(0, 0, 0, 0.28)),
+    "elevation-2": (0 0 2px rgba(0, 0, 0, 0.24), 0 4px 8px rgba(0, 0, 0, 0.28)),
+    "elevation-3": (0 0 2px rgba(0, 0, 0, 0.24), 0 8px 16px rgba(0, 0, 0, 0.28)),
+    "elevation-4": (0 0 8px rgba(0, 0, 0, 0.24), 0 14px 28px rgba(0, 0, 0, 0.28)),
+    "focus-ring-color": hsl(221, 100%, 75%)
+  )
+);
+
+// Validate against the public schema at compile time.
+$_check-light: tokens.merge((), $light);
+$_check-dark: tokens.merge((), $dark);
