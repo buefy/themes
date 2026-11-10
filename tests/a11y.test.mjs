@@ -4,9 +4,10 @@
 // Buefy does not already have, in light and dark, so we only ever fail on what
 // a theme changed. Baseline issues are printed so they stay visible.
 //
-// The colourful #backdrop-demo section is excluded: axe cannot see through a
-// backdrop-filter, so contrast over translucent surfaces is checked numerically
-// against worst-case backdrops in fluent.test.mjs and glass.test.mjs instead.
+// The colourful #backdrop-demo section is audited with every rule except
+// colour-contrast: axe cannot see through a backdrop-filter, so contrast over
+// translucent surfaces is checked numerically against worst-case backdrops in
+// fluent.test.mjs and glass.test.mjs instead.
 import { test, before, after } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
@@ -33,20 +34,30 @@ async function audit(options) {
   try {
     await page.addScriptTag({ content: axeSource })
     const violations = await page.evaluate(async () => {
-      const results = await axe.run(
+      const tags = { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] }
+      const flatten = (results) =>
+        results.violations.flatMap((v) =>
+          v.nodes.map((n) => ({
+            rule: v.id,
+            target: n.target.join(' '),
+            detail: (n.any[0] ?? n.all[0] ?? n.none[0])?.message ?? v.help
+          }))
+        )
+
+      // 1. Everything except the frosted section, with every rule (contrast included).
+      const main = await axe.run(
         { include: [['body']], exclude: [['#backdrop-demo']] },
-        {
-          runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] },
-          resultTypes: ['violations']
-        }
+        { runOnly: tags, resultTypes: ['violations'] }
       )
-      return results.violations.flatMap((v) =>
-        v.nodes.map((n) => ({
-          rule: v.id,
-          target: n.target.join(' '),
-          detail: (n.any[0] ?? n.all[0] ?? n.none[0])?.message ?? v.help
-        }))
+      // 2. The frosted section with every rule EXCEPT colour contrast: axe cannot
+      //    see through backdrop-filter, so contrast over translucent surfaces is
+      //    measured numerically in fluent.test.mjs and glass.test.mjs instead.
+      //    Its links, landmarks and names are still audited here.
+      const frosted = await axe.run(
+        { include: [['#backdrop-demo']] },
+        { runOnly: tags, rules: { 'color-contrast': { enabled: false } }, resultTypes: ['violations'] }
       )
+      return [...flatten(main), ...flatten(frosted)]
     })
     return violations
   } finally {
