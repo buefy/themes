@@ -8,8 +8,10 @@
 // slower fluid motion and the material layer. Not affiliated with any vendor.
 
 @use "sass:map";
-@use "../../core/tokens";
+@use "../../core/mapping";
 @use "../../core/material";
+@use "../../core/scope";
+@use "../../core/tokens";
 
 // Frosted with the shared tint token.
 $flyouts: (".dropdown-content", ".modal-card");
@@ -150,4 +152,37 @@ $_check-dark: tokens.merge((), $dark);
       display: none;
     }
   }
+}
+
+// Everything this theme emits. $name null: standalone; otherwise scoped under
+// <html data-buefy-theme="$name">.
+@mixin output($name: null) {
+  $host: scope.host($name);
+  @include scope.tokens-for($name, $light, $dark) using ($mode) {
+    @include host-extras($mode);
+  }
+  @include mapping.for($name);
+  @include components($host);
+
+  // Dropdown flyouts and the modal card share the tint token.
+  @include material.surface($host, $flyouts);
+
+  // Neutral toasts and snackbars: their own background, made partly translucent.
+  // Coloured (is-*) toasts are excluded by the selector and stay solid.
+  @include material.surface(
+    $host,
+    ($toast-selector),
+    var(--bulma-toast-background-color),
+    color-mix(in srgb, var(--bulma-toast-background-color) $notice-opacity, transparent),
+    $color-mix-support
+  );
+  @include material.surface(
+    $host,
+    (".notices .snackbar"),
+    var(--bulma-snackbar-background-color),
+    color-mix(in srgb, var(--bulma-snackbar-background-color) $notice-opacity, transparent),
+    $color-mix-support
+  );
+
+  @include navbar($host);
 }

@@ -10,6 +10,7 @@
 @use "fixes";
 @use "focus";
 @use "motion";
+@use "scope";
 
 // Component selector -> (--bulma-<var> -> --buefy-<token>)
 $component-vars: (
@@ -58,5 +59,10 @@ $component-vars: (
 
 // Multi-theme entry: only while <html data-buefy-theme="$name"> is set.
 @mixin scoped($name) {
-  @include apply(':root:root[data-buefy-theme="#{$name}"]');
+  @include apply(scope.host($name));
+}
+
+// Standalone when $name is null, scoped otherwise.
+@mixin for($name: null) {
+  @include apply(scope.host($name));
 }

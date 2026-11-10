@@ -1,1 +1,15 @@
-// Entry for @buefy/themes (all themes, scoped; placeholder)
+// Entry for @buefy/themes (all themes, inactive until selected).
+//
+// Every rule is scoped under <html data-buefy-theme="NAME">, so importing this
+// changes nothing until the attribute is set. Switch themes at runtime by
+// changing the attribute; remove it to return to plain Buefy. The attribute must
+// be on <html>. It composes with Bulma's own light/dark switch:
+//
+//   <html data-buefy-theme="fluent" data-theme="dark">
+@use "../themes/elevated";
+@use "../themes/fluent";
+@use "../themes/glass";
+
+@include elevated.output("elevated");
+@include fluent.output("fluent");
+@include glass.output("glass");

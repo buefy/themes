@@ -1,12 +1,4 @@
 // Entry for @buefy/themes/fluent
-@use "../core/scope";
-@use "../core/mapping";
-@use "../core/material";
 @use "../themes/fluent";
 
-@include scope.standalone(fluent.$light, fluent.$dark) using ($mode) {
-  @include fluent.host-extras($mode);
-}
-@include mapping.standalone();
-@include fluent.components(":root:root");
-@include material.surface(":root:root", fluent.$flyouts);
+@include fluent.output();

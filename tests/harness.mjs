@@ -75,15 +75,19 @@ export async function shutdown() {
   await browser?.close()
 }
 
-// theme: 'elevated' | 'fluent' | 'glass' | null (Buefy only)
-// css:   overrides the theme stylesheet text (e.g. to simulate missing features)
+// theme:     'elevated' | 'fluent' | 'glass' | 'all' | null (Buefy only)
+// css:       overrides the theme stylesheet text (e.g. to simulate missing features)
+// htmlAttrs: extra attributes on <html>, e.g. 'data-buefy-theme="fluent"'
+// bodyAttrs: extra attributes on <body>
 export async function open({
   theme = null,
   css = null,
   os = 'light',
   order = 'theme-first',
   reducedMotion = 'no-preference',
-  forcedColors = 'none'
+  forcedColors = 'none',
+  htmlAttrs = '',
+  bodyAttrs = ''
 } = {}) {
   const buefy = buefyCss
   const themeSheet = css ?? (theme ? themeCss(theme) : null)
@@ -95,9 +99,38 @@ export async function open({
   const context = await browser.newContext({ colorScheme: os, reducedMotion, forcedColors })
   const page = await context.newPage()
   await page.setContent(
-    `<!doctype html><html lang="en"><head>${sheets.map((s) => `<style>${s}</style>`).join('')}</head><body>${MARKUP}</body></html>`
+    `<!doctype html><html lang="en" ${htmlAttrs}><head>${sheets.map((s) => `<style>${s}</style>`).join('')}</head><body ${bodyAttrs}>${MARKUP}</body></html>`
   )
   return { page, close: () => context.close() }
+}
+
+// Every computed property of <html> and every element in <body>, plus ::before,
+// after any running transitions have finished (a runtime theme switch animates).
+export async function snapshot(page) {
+  await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => {}))))
+  return page.evaluate(() => {
+    const elements = [document.documentElement, ...document.body.querySelectorAll('*')]
+    return elements.map((el) => {
+      const props = {}
+      for (const pseudo of [null, '::before']) {
+        const cs = getComputedStyle(el, pseudo)
+        for (const p of cs) props[`${pseudo ?? ''}${p}`] = cs.getPropertyValue(p)
+      }
+      return { label: el.id ? `#${el.id}` : el.className ? `.${String(el.className).split(' ')[0]}` : el.tagName, props }
+    })
+  })
+}
+
+// Human-readable list of every property that differs between two snapshots.
+export function diffSnapshots(a, b, limit = 10) {
+  if (a.length !== b.length) return [`element count differs: ${a.length} vs ${b.length}`]
+  const diffs = []
+  a.forEach((el, i) => {
+    for (const prop of Object.keys(el.props)) {
+      if (el.props[prop] !== b[i].props[prop]) diffs.push(`${el.label} ${prop}: ${el.props[prop]}  !==  ${b[i].props[prop]}`)
+    }
+  })
+  return diffs.length > limit ? [...diffs.slice(0, limit), `...and ${diffs.length - limit} more`] : diffs
 }
 
 export const shadow = (page, selector, pseudo) =>

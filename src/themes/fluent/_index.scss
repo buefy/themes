@@ -12,6 +12,9 @@
 
 @use "sass:map";
 @use "bulma/sass/utilities/css-variables" as cv;
+@use "../../core/mapping";
+@use "../../core/material";
+@use "../../core/scope";
 @use "../../core/tokens";
 
 // Accent. #0f6cbd, expressed as HSL so Bulma can derive its shade ladder.
@@ -106,4 +109,16 @@ $_check-dark: tokens.merge((), $dark);
   #{$host} .card {
     --bulma-card-radius: var(--bulma-radius-large);
   }
+}
+
+// Everything this theme emits. $name null: standalone; otherwise scoped under
+// <html data-buefy-theme="$name">.
+@mixin output($name: null) {
+  $host: scope.host($name);
+  @include scope.tokens-for($name, $light, $dark) using ($mode) {
+    @include host-extras($mode);
+  }
+  @include mapping.for($name);
+  @include components($host);
+  @include material.surface($host, $flyouts);
 }

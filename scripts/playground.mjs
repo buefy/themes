@@ -8,7 +8,7 @@ import path from 'node:path'
 const root = fileURLToPath(new URL('..', import.meta.url))
 const out = path.join(root, 'playground', 'dist')
 const buefy = await readFile(path.join(root, 'node_modules/buefy/dist/css/buefy.css'), 'utf8')
-const name = process.env.THEME || 'elevated' // THEME=fluent npm run playground
+const name = process.env.THEME || 'elevated' // THEME=fluent|glass|all npm run playground
 const theme = await readFile(path.join(root, 'dist', `${name}.css`), 'utf8')
 
 const swatches = [1, 2, 3, 4]
@@ -19,7 +19,7 @@ await mkdir(out, { recursive: true })
 await writeFile(
   path.join(out, 'index.html'),
   `<!doctype html>
-<html lang="en">
+<html lang="en"${name === 'all' ? ' data-buefy-theme="fluent"' : ''}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -35,6 +35,14 @@ await writeFile(
   <button class="button" onclick="document.documentElement.dataset.theme='dark'">Dark</button>
   <button class="button" onclick="delete document.documentElement.dataset.theme">System</button>
 </div>
+${
+  name === 'all'
+    ? `<div class="buttons">
+  <button class="button" onclick="document.documentElement.removeAttribute('data-buefy-theme')">No theme</button>
+  ${['elevated', 'fluent', 'glass'].map((t) => `<button class="button" onclick="document.documentElement.dataset.buefyTheme='${t}'">${t}</button>`).join('\n  ')}
+</div>`
+    : ''
+}
 <div>${swatches}</div>
 <div class="columns" style="margin-top:1rem">
   <div class="column"><div class="box">Box (elevation-1)</div></div>

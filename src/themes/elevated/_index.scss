@@ -3,6 +3,8 @@
 // Shadow layers follow Fluent's key + ambient model (inspired by, not copied from).
 
 @use "sass:map";
+@use "../../core/mapping";
+@use "../../core/scope";
 @use "../../core/tokens";
 
 $_motion: (
@@ -44,3 +46,10 @@ $dark: map.merge(
 // Validate against the public schema at compile time.
 $_check-light: tokens.merge((), $light);
 $_check-dark: tokens.merge((), $dark);
+
+// Everything this theme emits. $name null: standalone; otherwise scoped under
+// <html data-buefy-theme="$name">.
+@mixin output($name: null) {
+  @include scope.tokens-for($name, $light, $dark);
+  @include mapping.for($name);
+}

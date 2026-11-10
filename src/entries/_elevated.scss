@@ -1,7 +1,4 @@
 // Entry for @buefy/themes/elevated
-@use "../core/scope";
-@use "../core/mapping";
 @use "../themes/elevated";
 
-@include scope.standalone(elevated.$light, elevated.$dark);
-@include mapping.standalone();
+@include elevated.output();

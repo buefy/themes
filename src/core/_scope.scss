@@ -51,9 +51,34 @@
   }
 }
 
+// The selector every rule of a theme is prefixed with. $name null means the
+// standalone entry (whole document); otherwise the multi-theme entry, which only
+// applies while <html data-buefy-theme="$name"> is set. The attribute must be on
+// the root element: themes are page-wide, not per subtree.
+@function host($name: null) {
+  @if $name {
+    @return ':root:root[data-buefy-theme="#{$name}"]';
+  }
+  @return ":root:root";
+}
+
 // Multi-theme entry: applies only while <html data-buefy-theme="$name"> is set.
 @mixin scoped($name, $light, $dark) {
-  @include themed(':root:root[data-buefy-theme="#{$name}"]', $light, $dark) using ($mode) {
+  @include themed(host($name), $light, $dark) using ($mode) {
     @content($mode);
+  }
+}
+
+// Standalone when $name is null, scoped otherwise. Themes call this so the two
+// entries can never drift apart.
+@mixin tokens-for($name, $light, $dark) {
+  @if $name {
+    @include scoped($name, $light, $dark) using ($mode) {
+      @content($mode);
+    }
+  } @else {
+    @include standalone($light, $dark) using ($mode) {
+      @content($mode);
+    }
   }
 }

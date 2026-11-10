@@ -7,7 +7,7 @@ import path from 'node:path'
 import postcss from 'postcss'
 import { root } from './helpers.mjs'
 
-const THEMES = ['elevated', 'fluent', 'glass']
+const THEMES = ['elevated', 'fluent', 'glass', 'all']
 
 // Rules that add behaviour Buefy never had, so there is nothing upstream to match.
 const ADDITIONS = new Set([
