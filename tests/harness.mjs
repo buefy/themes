@@ -178,6 +178,12 @@ export const rootVar = (page, name) =>
   page.evaluate((n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim(), name)
 
 // Colour of a translucent `bg` laid over a solid backdrop, as an rgb() string.
+// The colour with its alpha multiplied by `factor` (e.g. an element's `opacity`).
+export function fade(color, factor) {
+  const { r, g, b, a } = parseRgb(color)
+  return `rgba(${r}, ${g}, ${b}, ${a * factor})`
+}
+
 export function compositeOver(bg, backdrop) {
   const { r, g, b, a } = parseRgb(bg)
   const mix = (c, back) => Math.round(c * a + back * (1 - a))

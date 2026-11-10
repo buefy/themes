@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import postcss from 'postcss'
 import { root } from './helpers.mjs'
-import { launch, shutdown, open, style, parseRgb, contrast, compositeOver, BACKDROPS } from './harness.mjs'
+import { launch, shutdown, open, style, parseRgb, contrast, compositeOver, fade, BACKDROPS } from './harness.mjs'
 
 before(launch)
 after(shutdown)
@@ -89,9 +89,14 @@ for (const os of OS) {
       for (const [label, textSelector, surfaceSelector, pseudo] of cases) {
         const text = await style(page, textSelector, 'color')
         const surface = await style(page, surfaceSelector, 'backgroundColor', pseudo)
+        // `opacity` on the surface element fades its text and background together
+        // over the backdrop (Buefy gives toasts and snackbars opacity 0.92).
+        const opacity = parseFloat(await style(page, surfaceSelector, 'opacity'))
         for (const [name, backdrop] of Object.entries(BACKDROPS)) {
-          const ratio = contrast(text, compositeOver(surface, backdrop))
-          if (ratio < 4.5) failures.push(`${label} over ${name}: ${ratio.toFixed(2)}:1 (${text} on ${surface})`)
+          const seenText = compositeOver(fade(text, opacity), backdrop)
+          const seenSurface = compositeOver(fade(surface, opacity), backdrop)
+          const ratio = contrast(seenText, seenSurface)
+          if (ratio < 4.5) failures.push(`${label} over ${name}: ${ratio.toFixed(2)}:1 (${text} on ${surface}, element opacity ${opacity})`)
         }
       }
       assert.deepEqual(failures, [])
