@@ -1,0 +1,65 @@
+{
+  "name": "@buefy/themes",
+  "version": "0.0.0",
+  "description": "Official themes for Buefy: elevation, materials and motion for a more modern look. Inspired by, not affiliated with, Microsoft Fluent.",
+  "keywords": ["buefy", "bulma", "vue", "vue3", "theme", "themes", "css", "sass", "design-tokens", "fluent", "glassmorphism"],
+  "license": "MIT",
+  "author": "Wesley Ford",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/buefy/buefy-themes.git"
+  },
+  "bugs": "https://github.com/buefy/buefy-themes/issues",
+  "homepage": "https://github.com/buefy/buefy-themes#readme",
+  "type": "module",
+  "sideEffects": ["*.css"],
+  "files": ["dist", "src"],
+  "exports": {
+    ".": {
+      "types": "./dist/css.d.ts",
+      "sass": "./src/entries/_all.scss",
+      "default": "./dist/all.css"
+    },
+    "./elevated": {
+      "types": "./dist/css.d.ts",
+      "sass": "./src/entries/_elevated.scss",
+      "default": "./dist/elevated.css"
+    },
+    "./fluent": {
+      "types": "./dist/css.d.ts",
+      "sass": "./src/entries/_fluent.scss",
+      "default": "./dist/fluent.css"
+    },
+    "./glass": {
+      "types": "./dist/css.d.ts",
+      "sass": "./src/entries/_glass.scss",
+      "default": "./dist/glass.css"
+    },
+    "./manifest": "./dist/manifest.json",
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "buefy": "^3.1.0"
+  },
+  "devDependencies": {
+    "buefy": "^3.1.0",
+    "bulma": "^1.0.4",
+    "lightningcss": "^1.30.0",
+    "publint": "^0.3.0",
+    "sass": "^1.89.0"
+  },
+  "scripts": {
+    "clean": "node scripts/clean.mjs",
+    "build": "node scripts/build.mjs",
+    "verify": "node scripts/verify-exports.mjs && publint",
+    "test": "npm run build && npm run verify",
+    "prepack": "npm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
