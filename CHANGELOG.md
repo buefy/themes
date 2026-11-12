@@ -20,7 +20,7 @@ here.
 - The real-browser tests also run in Firefox (`BROWSER=firefox npm run test:cascade`, and a CI job). Visual regression and the `prefers-reduced-transparency` tests remain Chromium-only; WebKit is still untested.
 - CI and publish workflows use `actions/*@v7`; Dependabot keeps dependencies and Actions current.
 
-## [0.1.0] - Unreleased
+## [0.1.0] - 2026-11-10
 
 First release.
 

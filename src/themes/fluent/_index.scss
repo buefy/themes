@@ -5,7 +5,10 @@
 // On top of the elevated foundations it adds:
 //   - neutral (grey) surfaces in two layers, like a Mica-style page behind cards
 //   - a blue accent generated with Bulma's own palette mixins, so derived
-//     shades and accessible foreground colours stay correct
+//     shades and accessible foreground colours stay correct. It is configurable
+//     from Sass ($accent, $accent-dark, or $accent: none; see src/entries/_fluent.scss
+//     and resolve-accent() below), which is why it is a build-time setting and not
+//     a CSS token.
 //   - a system font stack and tighter radii
 //   - hairline strokes folded into every elevation level
 //   - decelerate-in motion, plus an acrylic-style frosted dropdown flyout
