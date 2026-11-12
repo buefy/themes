@@ -1,9 +1,21 @@
 // Shared real-browser harness for theme tests.
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import { chromium } from 'playwright-core'
+import { chromium, firefox } from 'playwright-core'
 import { root } from './helpers.mjs'
 import { galleryHtml } from '../scripts/gallery.mjs'
+
+// Which browser the real-browser tests run in: BROWSER=chromium (default) or
+// firefox. WebKit needs system libraries this project's CI image does not install.
+// Visual baselines are Chromium-only (see tests/visual.test.mjs).
+export const BROWSER = process.env.BROWSER ?? 'chromium'
+const BROWSERS = { chromium, firefox }
+if (!BROWSERS[BROWSER]) throw new Error(`BROWSER must be one of ${Object.keys(BROWSERS).join(', ')}, not "${BROWSER}"`)
+export const browserType = BROWSERS[BROWSER]
+
+// prefers-reduced-transparency can only be emulated through Chromium's DevTools
+// protocol; tests that need it are skipped in other browsers.
+export const canEmulateReducedTransparency = BROWSER === 'chromium'
 
 export const buefyCss = readFileSync(path.join(root, 'node_modules/buefy/dist/css/buefy.css'), 'utf8')
 export const themeCss = (name) => readFileSync(path.join(root, 'dist', `${name}.css`), 'utf8')
@@ -70,7 +82,7 @@ export const MARKUP = `
 
 let browser
 export async function launch() {
-  browser = await chromium.launch()
+  browser = await browserType.launch()
 }
 export async function shutdown() {
   await browser?.close()
@@ -90,6 +102,7 @@ async function newPage({ os, reducedMotion, forcedColors, reducedTransparency, v
   const context = await browser.newContext({ colorScheme: os, reducedMotion, forcedColors, ...(viewport && { viewport }) })
   const page = await context.newPage()
   if (reducedTransparency) {
+    if (!canEmulateReducedTransparency) throw new Error(`cannot emulate prefers-reduced-transparency in ${BROWSER}`)
     const cdp = await context.newCDPSession(page)
     await cdp.send('Emulation.setEmulatedMedia', {
       features: [{ name: 'prefers-reduced-transparency', value: 'reduce' }]

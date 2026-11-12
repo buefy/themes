@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import postcss from 'postcss'
 import { root } from './helpers.mjs'
-import { launch, shutdown, open, style, rootVar, parseRgb, contrast } from './harness.mjs'
+import { launch, shutdown, open, style, rootVar, parseRgb, contrast, canEmulateReducedTransparency } from './harness.mjs'
 
 before(launch)
 after(shutdown)
@@ -139,7 +139,7 @@ for (const os of OS) {
   })
 }
 
-test('material falls back to a solid surface under prefers-reduced-transparency', async () => {
+test('material falls back to a solid surface under prefers-reduced-transparency', { skip: !canEmulateReducedTransparency && 'cannot emulate prefers-reduced-transparency in this browser' }, async () => {
   const frostedPref = await open({ theme: 'fluent' })
   const { page, close } = await open({ theme: 'fluent', reducedTransparency: true })
   try {

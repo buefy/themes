@@ -5,14 +5,14 @@ import { test, before, after } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import { chromium } from 'playwright-core'
+import { browserType } from './harness.mjs'
 import { compileFixture, root } from './helpers.mjs'
 
 const buefyCss = readFileSync(path.join(root, 'node_modules/buefy/dist/css/buefy.css'), 'utf8')
 const read = (el) => el.ownerDocument.defaultView.getComputedStyle(el).getPropertyValue('--buefy-material-tint').trim()
 
 let browser
-before(async () => { browser = await chromium.launch() })
+before(async () => { browser = await browserType.launch() })
 after(async () => { await browser?.close() })
 
 async function probe({ css, os, html = '', sub = '' }, order) {

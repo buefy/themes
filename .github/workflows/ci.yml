@@ -42,6 +42,24 @@ jobs:
         if: matrix.node == 22
         run: npm pack --dry-run
 
+  firefox:
+    name: browser tests (firefox)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright-core install --with-deps firefox
+      - run: npm run build
+      # Same real-browser suites as the main job, in Firefox. Visual regression and
+      # the prefers-reduced-transparency tests stay Chromium-only (see README).
+      - run: npm run test:cascade
+        env:
+          BROWSER: firefox
+
   consumers:
     name: consumers (install the packed tarball)
     runs-on: ubuntu-latest

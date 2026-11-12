@@ -4,7 +4,7 @@
 // element (and ::before), so any drift between the two outputs fails here.
 import { test, before, after } from 'node:test'
 import assert from 'node:assert/strict'
-import { launch, shutdown, open, snapshot, diffSnapshots, style } from './harness.mjs'
+import { launch, shutdown, open, snapshot, diffSnapshots, style, canEmulateReducedTransparency } from './harness.mjs'
 
 before(launch)
 after(shutdown)
@@ -17,7 +17,7 @@ const MODES = [
   ['dark OS', { os: 'dark' }],
   ['light OS, forced data-theme=dark', { os: 'light', dataTheme: 'dark' }],
   ['dark OS, forced data-theme=light', { os: 'dark', dataTheme: 'light' }],
-  ['reduced transparency', { os: 'light', reducedTransparency: true }],
+  ...(canEmulateReducedTransparency ? [['reduced transparency', { os: 'light', reducedTransparency: true }]] : []),
   ['forced colors', { os: 'light', forcedColors: 'active' }],
   ['reduced motion', { os: 'dark', reducedMotion: 'reduce' }]
 ]

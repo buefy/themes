@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { chromium } from 'playwright-core'
+import { browserType } from './harness.mjs'
 import { root } from './helpers.mjs'
 
 let browser
@@ -17,7 +17,7 @@ function build(theme) {
 }
 
 before(async () => {
-  browser = await chromium.launch()
+  browser = await browserType.launch()
 })
 after(async () => {
   await browser?.close()

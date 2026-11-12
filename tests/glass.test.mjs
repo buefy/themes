@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import postcss from 'postcss'
 import { root } from './helpers.mjs'
-import { launch, shutdown, open, style, parseRgb, contrast, compositeOver, fade, BACKDROPS } from './harness.mjs'
+import { launch, shutdown, open, style, parseRgb, contrast, compositeOver, fade, BACKDROPS, canEmulateReducedTransparency } from './harness.mjs'
 
 before(launch)
 after(shutdown)
@@ -181,7 +181,7 @@ test('forced-colors mode removes every blur layer', async () => {
   }
 })
 
-test('prefers-reduced-transparency removes every blur layer and restores solid surfaces', async () => {
+test('prefers-reduced-transparency removes every blur layer and restores solid surfaces', { skip: !canEmulateReducedTransparency && 'cannot emulate prefers-reduced-transparency in this browser' }, async () => {
   const bare = await open({})
   const frosted = await open({ theme: 'glass' })
   const { page, close } = await open({ theme: 'glass', reducedTransparency: true })

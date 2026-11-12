@@ -71,6 +71,7 @@ npx playwright-core install chromium-headless-shell   # once, for the browser te
 npm run build        # compile src/entries/* to dist/
 npm test             # everything except the consumer tests
 npm run test:consumers
+BROWSER=firefox npm run test:cascade   # the same browser tests in Firefox (npx playwright-core install firefox)
 npm run playground   # then open playground/dist/index.html (THEME=fluent|glass|all)
 npm run docs:screenshots   # regenerate docs/images for the README
 ```

@@ -167,7 +167,9 @@ Custom colours added through Bulma's `$custom-colors` are not part of the standa
 
 The build targets Chrome and Edge 100, Firefox 100 and Safari 15.4 or newer, and keeps the `-webkit-backdrop-filter` prefix older Safari needs. Frosted surfaces need `backdrop-filter` (and `color-mix()` for notices) and fall back to solid surfaces where those are missing, so older browsers still get a fully working, just not frosted, interface.
 
-**Everything is tested in Chromium only.** The browser tests, the axe audit and the screenshots run in headless Chromium. Firefox and Safari are not tested.
+**Tested in Chromium and Firefox, not in Safari.** The real-browser tests (theme behaviour, the axe audit, the playground) run in headless Chromium and in Firefox on every push. The screenshots (visual regression) and the `prefers-reduced-transparency` tests are Chromium-only: Firefox cannot emulate that preference, and visual baselines are per browser. WebKit/Safari is **not** tested, so the `-webkit-backdrop-filter` path and Safari's rendering are unverified.
+
+Run the browser tests in Firefox yourself with `BROWSER=firefox npm run test:cascade` (after `npx playwright-core install firefox`).
 
 ## Limitations
 
@@ -179,7 +181,7 @@ These are known and intentional for 0.1.0:
 - **Custom colours** (Bulma's `$custom-colors`) are not themed by `fluent`'s generated palette, and `glass` may frost a custom-coloured toast that has not been checked for contrast.
 - **Not themed:** the shadow on Buefy's mobile table cards (it is set inside a media query), the carousel's slide easing, and Bulma's named grey shades, which stay blue-grey under `fluent`.
 - **Plain Buefy's own contrast issues remain.** The audit only fails on issues a theme adds; see the accessibility section.
-- **Not tested:** Nuxt itself (the SSR build is tested with Vite), Firefox, Safari, and any bundler other than Vite.
+- **Not tested:** Safari/WebKit, Nuxt itself (the SSR build is tested with Vite), and any bundler other than Vite.
 - **Visual baselines were generated on Linux.** If CI renders slightly differently, regenerate them there.
 
 ## Disclaimer
